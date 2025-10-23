@@ -1,1 +1,1 @@
-Framework used: Laravel
+Framework used: Next.js
