@@ -63,59 +63,84 @@ async def predict(req: PredictRequest) -> PredictResponse:
 
 @router.post("/predict-file", response_model=PredictFileResponse)
 async def predict_file(
-    file: UploadFile = File(..., description="PNG/JPG image of the article"),
+    file: UploadFile = File(..., description="PNG/JPG gambar atau DOCX dokumen"),
     log_feedback: bool = True,
     user_label: Optional[int] = None,
 ) -> PredictFileResponse:
-    # Validate content type (basic image types)
-    if file.content_type not in {"image/png", "image/jpeg", "image/jpg"}:
-        raise HTTPException(status_code=400, detail="File harus berupa gambar PNG/JPG")
-
-    try:
-        from PIL import Image
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Pillow tidak tersedia: {e}")
-
-    # Read file into PIL image
     data = await file.read()
-    try:
-        image = Image.open(BytesIO(data)).convert("L")  # grayscale ringan
-    except Exception:
+    content_type = (file.content_type or "").lower()
+    name = (file.filename or "").lower()
+
+    text = ""
+
+    is_image = content_type in {
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+    } or name.endswith((".png", ".jpg", ".jpeg"))
+    is_docx = content_type in {
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    } or name.endswith(".docx")
+
+    if not (is_image or is_docx):
         raise HTTPException(
-            status_code=400, detail="Gagal membaca gambar. Pastikan file valid."
+            status_code=400, detail="Format tidak didukung. Gunakan PNG/JPG atau DOCX."
         )
 
-    # Run OCR via pytesseract
-    try:
-        import pytesseract
-
-        # Configure tesseract path on Windows if available
-        tess_cmd = os.environ.get("TESSERACT_CMD")
-        if tess_cmd:
-            pytesseract.pytesseract.tesseract_cmd = tess_cmd
-        else:
-            default_win = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-            if os.name == "nt" and Path(default_win).exists():
-                pytesseract.pytesseract.tesseract_cmd = default_win
+    if is_docx:
+        # Parse DOCX text
         try:
-            # Try Indonesian + English; fall back to default if not installed
-            text = pytesseract.image_to_string(image, lang="ind+eng")
-            if not text.strip():
+            from docx import Document  # type: ignore
+
+            doc = Document(BytesIO(data))
+            text = "\n".join([p.text for p in doc.paragraphs]).strip()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Gagal membaca DOCX: {e}")
+    else:
+        # Image OCR path
+        try:
+            from PIL import Image
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Pillow tidak tersedia: {e}")
+
+        try:
+            image = Image.open(BytesIO(data)).convert("L")  # grayscale ringan
+        except Exception:
+            raise HTTPException(
+                status_code=400, detail="Gagal membaca gambar. Pastikan file valid."
+            )
+
+        # Run OCR via pytesseract
+        try:
+            import pytesseract
+
+            # Configure tesseract path on Windows if available
+            tess_cmd = os.environ.get("TESSERACT_CMD")
+            if tess_cmd:
+                pytesseract.pytesseract.tesseract_cmd = tess_cmd
+            else:
+                default_win = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+                if os.name == "nt" and Path(default_win).exists():
+                    pytesseract.pytesseract.tesseract_cmd = default_win
+            try:
+                # Try Indonesian + English; fall back to default if not installed
+                text = pytesseract.image_to_string(image, lang="ind+eng")
+                if not text.strip():
+                    text = pytesseract.image_to_string(image)
+            except pytesseract.TesseractError:
                 text = pytesseract.image_to_string(image)
-        except pytesseract.TesseractError:
-            text = pytesseract.image_to_string(image)
-    except ImportError:
-        raise HTTPException(
-            status_code=500,
-            detail=(
-                "OCR tidak aktif: pustaka pytesseract belum terpasang atau biner Tesseract belum tersedia. "
-                "Install dengan 'pip install pytesseract' dan pasang Tesseract OCR (Windows: https://github.com/UB-Mannheim/tesseract/wiki)."
-            ),
-        )
+        except ImportError:
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    "OCR tidak aktif: pustaka pytesseract belum terpasang atau biner Tesseract belum tersedia. "
+                    "Install dengan 'pip install pytesseract' dan pasang Tesseract OCR (Windows: https://github.com/UB-Mannheim/tesseract/wiki)."
+                ),
+            )
 
     text = text.strip()
     if not text:
-        raise HTTPException(status_code=422, detail="Teks tidak terbaca dari gambar.")
+        raise HTTPException(status_code=422, detail="Teks tidak terbaca dari file.")
 
     try:
         preds, probs = predict_indobert(

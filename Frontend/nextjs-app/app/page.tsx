@@ -111,7 +111,7 @@ export default function HomePage() {
           {tab === 'text' ? (
             <div className="grid gap-3">
               <input className="input" placeholder="Judul (opsional)" value={title} onChange={e => setTitle(e.target.value)} />
-              <textarea className="textarea" placeholder="Paste atau ketik berita yang ingin Anda verifikasi di sini..." value={body} onChange={e => setBody(e.target.value)} />
+              <textarea data-testid="news_text" className="textarea" placeholder="Paste atau ketik berita yang ingin Anda verifikasi di sini..." value={body} onChange={e => setBody(e.target.value)} />
               <div className="text-xs text-slate-500">Minimal 10 karakter. Semakin lengkap teks, semakin akurat hasil analisis.</div>
             </div>
           ) : (
@@ -120,7 +120,7 @@ export default function HomePage() {
                 <div className="text-4xl">⬆️</div>
                 <div>Drag & Drop File atau klik untuk memilih</div>
                 <label className="btn-outline cursor-pointer">
-                  <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e => onDrop(e.target.files)} />
+                  <input data-testid="news_file" type="file" accept="image/png,image/jpeg,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={e => onDrop(e.target.files)} />
                   Pilih File
                 </label>
               </div>
@@ -140,7 +140,7 @@ export default function HomePage() {
         </div>
 
         <div className="mt-6">
-          <button className="btn w-full max-w-xl" disabled={!canAnalyze || loading} onClick={onAnalyze}>
+          <button data-testid="check" className="btn w-full max-w-xl" disabled={!canAnalyze || loading} onClick={onAnalyze}>
             {loading ? 'Memproses...' : 'Analisis Berita'}
           </button>
         </div>
