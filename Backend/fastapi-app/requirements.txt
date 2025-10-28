@@ -5,3 +5,4 @@ python-multipart==0.0.17
 pytesseract==0.3.13
 # Reuse existing model dependencies from Model IndoBERT/requirements.txt
 huggingface-hub==0.18.1
+python-docx==1.1.2
