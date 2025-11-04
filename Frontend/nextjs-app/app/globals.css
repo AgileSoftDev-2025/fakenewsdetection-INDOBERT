@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* App base styles */
+html, body { height: 100%; }
+body { @apply bg-slate-50 text-slate-800; }
+
+.container { @apply max-w-6xl mx-auto px-4; }
+.card { @apply bg-white shadow rounded-xl; }
+.badge { @apply inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600; }
+.tab { @apply flex-1 text-center py-2 rounded-md cursor-pointer; }
+.tab-active { @apply bg-slate-200 font-semibold; }
+.btn { @apply inline-flex items-center justify-center px-4 py-2 rounded-md bg-slate-800 text-white hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed; }
+.btn-outline { @apply inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100; }
+.input { @apply w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500; }
+.textarea { @apply w-full rounded-md border border-slate-300 px-3 py-2 min-h-[180px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500; }
+.dropzone { @apply flex flex-col items-center justify-center gap-3 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 py-10 text-slate-500; }
+.notice { @apply rounded-xl border border-amber-500/30 bg-amber-100 text-slate-800 p-4; }
