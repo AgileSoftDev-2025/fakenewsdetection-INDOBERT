@@ -56,7 +56,7 @@ def _find_edge_driver_path() -> str | None:
         return which
     # 3) Common install locations (winget / manual)
     candidates = [
-        Path(r"C:\\Program Files\\Microsoft\\EdgeWebDriver"),
+        Path(r"C:\Program Files\Microsoft\EdgeWebDriver"),
         Path(r"C:\\Program Files (x86)\\Microsoft\\EdgeWebDriver"),
     ]
     for base in candidates:
