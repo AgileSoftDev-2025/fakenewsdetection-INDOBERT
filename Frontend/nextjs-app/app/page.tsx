@@ -12,6 +12,7 @@ export default function HomePage() {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [filePreview, setFilePreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -23,7 +24,20 @@ export default function HomePage() {
 
   const onDrop = (files: FileList | null) => {
     if (!files || files.length === 0) return
-    setFile(files[0])
+    const selectedFile = files[0]
+    setFile(selectedFile)
+    
+    // Generate preview for images
+    if (selectedFile.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFilePreview(reader.result as string)
+      }
+      reader.readAsDataURL(selectedFile)
+    } else {
+      // For non-image files (like .docx), no preview
+      setFilePreview(null)
+    }
   }
 
   const submitText = async () => {
@@ -116,16 +130,52 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              <div className="dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); onDrop(e.dataTransfer.files) }}>
-                <div className="text-4xl">⬆️</div>
-                <div>Drag & Drop File atau klik untuk memilih</div>
-                <label className="btn-outline cursor-pointer">
-                  <input data-testid="news_file" type="file" accept="image/png,image/jpeg,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={e => onDrop(e.target.files)} />
-                  Pilih File
-                </label>
-              </div>
+              {!file ? (
+                <div className="dropzone" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); onDrop(e.dataTransfer.files) }}>
+                  <div className="text-4xl">⬆️</div>
+                  <div>Drag & Drop File atau klik untuk memilih</div>
+                  <label className="btn-outline cursor-pointer">
+                    <input data-testid="news_file" type="file" accept="image/png,image/jpeg,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={e => onDrop(e.target.files)} />
+                    Pilih File
+                  </label>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
+                  <div className="flex items-start gap-4">
+                    {/* Thumbnail Preview */}
+                    <div className="shrink-0">
+                      {filePreview ? (
+                        <img src={filePreview} alt="Preview" className="w-24 h-24 object-cover rounded-lg border-2 border-blue-400" />
+                      ) : (
+                        <div className="w-24 h-24 bg-slate-200 rounded-lg flex items-center justify-center border-2 border-slate-300">
+                          <span className="text-4xl">📄</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* File Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-slate-900 truncate">{file.name}</div>
+                      <div className="text-sm text-slate-600 mt-1">
+                        {(file.size / 1024).toFixed(2)} KB • {file.type || 'Document'}
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <label className="btn-outline cursor-pointer text-sm">
+                          <input data-testid="news_file" type="file" accept="image/png,image/jpeg,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={e => onDrop(e.target.files)} />
+                          Ganti File
+                        </label>
+                        <button 
+                          className="text-sm px-3 py-1.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                          onClick={() => { setFile(null); setFilePreview(null) }}
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="text-xs text-slate-500">Format yang didukung: PNG, JPG, PDF (Maksimal 10MB)</div>
-              {file && <div className="text-sm">Dipilih: <span className="font-medium">{file.name}</span></div>}
             </div>
           )}
         </div>

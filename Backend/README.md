@@ -1,46 +1,196 @@
-Framework used: FastAPI
+# Backend - Fake News Detection API
 
-This backend exposes minimal endpoints to serve IndoBERT predictions and feedback.
+Framework used: **FastAPI**
 
-Folder: `Backend/fastapi-app`
+This backend provides REST API endpoints for Indonesian fake news detection using IndoBERT model, with support for text input, OCR from images, and DOCX document parsing.
 
-Windows setup
+## 📁 Project Structure
 
-1) Create and activate venv (optional but recommended)
+```
+Backend/fastapi-app/
+├── app/
+│   ├── main.py              # FastAPI app with startup hooks
+│   ├── api/
+│   │   ├── predict.py       # Prediction endpoints (text & file)
+│   │   └── feedback.py      # Feedback management
+│   └── ...
+├── requirements.txt         # Python dependencies
+└── README.md
+```
+
+## 🚀 Setup Instructions (Windows)
+
+### 1. Create and activate virtual environment
 
 ```powershell
-cd "Backend/fastapi-app"
+cd Backend/fastapi-app
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-2) Install dependencies
+### 2. Install dependencies
 
 ```powershell
 pip install -r requirements.txt
-pip install -r "..\..\Model IndoBERT\requirements.txt"
 ```
 
-3) Run server
+**Note:** This will install all required dependencies including:
+- FastAPI & Uvicorn (web framework & ASGI server)
+- PyTorch & Transformers (ML model)
+- Tesseract OCR & python-docx (document processing)
+- Hugging Face Hub (model downloading)
+
+### 3. Configure Environment Variables (Optional)
+
+Create a `.env` file in `Backend/fastapi-app/` for Hugging Face model auto-download:
+
+```env
+HF_MODEL_REPO=your-username/your-model-repo
+HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxx
+```
+
+**When to use:**
+- If model files are hosted on Hugging Face Hub
+- Backend will auto-download model on first startup if local model directory is empty
+- Token required for private repositories
+
+**Default behavior (no .env):**
+- Uses local model files from `Model IndoBERT/models/indobert/`
+
+### 4. Install Tesseract OCR (for image processing)
+
+Download and install Tesseract OCR:
+- Download: https://github.com/UB-Mannheim/tesseract/wiki
+- Add to PATH or set `TESSERACT_CMD` environment variable
+
+### 5. Run the server
 
 ```powershell
 uvicorn app.main:app --reload --port 8000
 ```
 
-The API will import and reuse code from `Model IndoBERT/src`.
+Server will start on: **http://localhost:8000**
 
-Endpoints
+## 📡 API Endpoints
 
-- GET /health → { status: "ok" }
-- POST /predict → Predict IndoBERT
-	- body: { title?: string, text?: string, body?: string, log_feedback?: boolean, user_label?: 0|1 }
-	- resp: { prediction: 0|1, prob_hoax: number, model_version: string }
-- GET /feedback?limit=50 → latest feedback rows
-- PATCH /feedback/{id} → update user_label
-	- body: { user_label: 0|1 }
-- GET /model/version → current model version
+### Health Check
+```http
+GET /health
+Response: { "status": "ok" }
+```
 
-Notes
+### Predict from Text
+```http
+POST /predict
+Content-Type: application/json
 
-- Ensure model files exist at `Model IndoBERT/models/indobert/`.
-- Feedback is stored at `Model IndoBERT/data/feedback/feedback.csv` managed by the shared module.
+Body:
+{
+  "title": "Optional title",
+  "text": "News text content",
+  "body": "News body content",
+  "log_feedback": true,
+  "user_label": 0
+}
+
+Response:
+{
+  "prediction": 0,          # 0 = Valid, 1 = Hoax
+  "prob_hoax": 0.1234,
+  "model_version": "indobert-base"
+}
+```
+
+### Predict from File (Image OCR or DOCX)
+```http
+POST /predict-file
+Content-Type: multipart/form-data
+
+Body:
+- file: [PNG/JPG/DOCX file]
+- log_feedback: "true"
+
+Response:
+{
+  "prediction": 0,
+  "prob_hoax": 0.1234,
+  "model_version": "indobert-base",
+  "extracted_text": "Text extracted from file..."
+}
+```
+
+**Supported formats:**
+- Images: PNG, JPG (via Tesseract OCR with Indonesian + English)
+- Documents: DOCX (text extraction via python-docx)
+
+### Feedback Management
+```http
+GET /feedback?limit=50
+Response: [{ id, timestamp, prediction, user_label, ... }]
+
+PATCH /feedback/{id}
+Body: { "user_label": 0 }
+Response: { "message": "Feedback updated" }
+```
+
+### Model Version
+```http
+GET /model/version
+Response: { "version": "indobert-base", "path": "..." }
+```
+
+## 🗂️ Model Integration
+
+The API imports and reuses code from `Model IndoBERT/src` module. Model files should exist at:
+- `Model IndoBERT/models/indobert/` (local)
+- Or auto-downloaded from Hugging Face Hub on startup
+
+## 💾 Data Storage
+
+Feedback is stored at: `Model IndoBERT/data/feedback/feedback.csv`
+
+## 🧪 Testing
+
+Run backend tests:
+```powershell
+pytest tests/
+```
+
+## 🔧 Troubleshooting
+
+**Issue: uvicorn not found**
+```powershell
+pip install --force-reinstall uvicorn[standard]
+```
+
+**Issue: PyTorch DLL error on Windows**
+```powershell
+pip uninstall torch torchvision torchaudio -y
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+```
+
+**Issue: Tesseract not found**
+- Ensure Tesseract is installed and in PATH
+- Or set: `$env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"`
+
+**Issue: Model not found**
+- Ensure model files exist in `Model IndoBERT/models/indobert/`
+- Or configure HF_MODEL_REPO and HF_TOKEN for auto-download
+
+## 📦 Dependencies Overview
+
+| Library | Version | Purpose |
+|---------|---------|---------|
+| fastapi | 0.115.0 | Web framework |
+| uvicorn | 0.30.6 | ASGI server |
+| torch | ≥2.0.0 | Deep learning |
+| transformers | ≥4.30.0 | IndoBERT model |
+| pytesseract | 0.3.13 | OCR processing |
+| python-docx | 1.1.2 | DOCX parsing |
+| huggingface-hub | ≥0.18.1 | Model download |
+
+## 🔗 Related
+
+- Frontend: `Frontend/nextjs-app/`
+- Model Training: `Model IndoBERT/`
+- BDD Tests: `tests/bdd/`
