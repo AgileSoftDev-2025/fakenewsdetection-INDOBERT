@@ -29,3 +29,4 @@ id,timestamp,model_name,model_version,text_length,prediction,prob_hoax,confidenc
 28,1762264001,indobert,v1,118,0,0.39749956130981445,0.6025004982948303,,unknown,"Otoritas Jasa Keuangan (OJK) menyampaikan, aset perbankan syariah pada akhir September 2025 mencapai Rp 1.000 triliun."
 29,1762264097,indobert,v1,76,1,0.9999885559082031,0.9999885559082031,,unknown,"Bakso Remaja Gading\nDinyatakan Halal, Pemilik:\nSemoga Pelanggan Percaya\nLagi"
 30,1762264636,indobert,v1,76,1,0.9999885559082031,0.9999885559082031,,unknown,"Bakso Remaja Gading\nDinyatakan Halal, Pemilik:\nSemoga Pelanggan Percaya\nLagi"
+31,1762425682,indobert,v1,37,1,0.9999866485595703,0.9999866485595703,,unknown,"a,mw dadknawjdawd\n\ndaiwdibaiwdbiaubwd"

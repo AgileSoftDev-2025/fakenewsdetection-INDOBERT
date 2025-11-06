@@ -40,22 +40,48 @@ pip install -r requirements.txt
 - Tesseract OCR & python-docx (document processing)
 - Hugging Face Hub (model downloading)
 
-### 3. Configure Environment Variables (Optional)
+### 3. Configure Environment Variables
 
-Create a `.env` file in `Backend/fastapi-app/` for Hugging Face model auto-download:
+**Option A: Use Hugging Face Model (Recommended for Production)**
 
+Copy the example .env file and configure your Hugging Face credentials:
+
+```powershell
+Copy-Item .env.example .env
+# Edit .env and add your HF token
+```
+
+Edit `.env` file:
 ```env
-HF_MODEL_REPO=your-username/your-model-repo
+HF_MODEL_REPO=Davidbio/fakenewsdetection-indobert
 HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-**When to use:**
-- If model files are hosted on Hugging Face Hub
-- Backend will auto-download model on first startup if local model directory is empty
-- Token required for private repositories
+**Get your Hugging Face token:**
+1. Visit https://huggingface.co/settings/tokens
+2. Login to your account
+3. Create a new token (or use existing one)
+4. Copy the token and paste it in `.env` file
 
-**Default behavior (no .env):**
-- Uses local model files from `Model IndoBERT/models/indobert/`
+**Test your configuration:**
+```powershell
+python test_hf_connection.py
+```
+
+This will verify:
+- ✓ Environment variables are set
+- ✓ Hugging Face authentication works
+- ✓ Model repository is accessible
+- ✓ Required model files exist
+
+**Option B: Use Local Model (For Development)**
+
+If you have model files locally at `Model IndoBERT/models/indobert/`, you can skip the Hugging Face setup. The backend will automatically use local files if available.
+
+**Model Loading Priority:**
+1. Check if model exists locally → Use local files
+2. If HF_MODEL_REPO is set AND model not local → Download from HF
+3. On subsequent starts → Always use local (no re-download)
 
 ### 4. Install Tesseract OCR (for image processing)
 
