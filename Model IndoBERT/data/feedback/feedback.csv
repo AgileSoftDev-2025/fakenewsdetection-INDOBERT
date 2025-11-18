@@ -43,3 +43,5 @@ id,timestamp,model_name,model_version,text_length,prediction,prob_hoax,confidenc
 42,1763390308,indobert,v1,22,3,0.18775548040866852,0.42997369170188904,,unknown,bbm naik\n\nbbm naik 89%
 43,1763390407,indobert,v1,22,4,0.17023523151874542,0.34700337052345276,,unknown,bbm naik\n\nbbm naik 78%
 44,1763390620,indobert,v1,65,0,0.21312102675437927,0.2503827214241028,,unknown,steffi zamora menikah\n\nsteffi zamora menikah pada 7 desember 2022
+31,1762425682,indobert,v1,37,1,0.9999866485595703,0.9999866485595703,,unknown,"a,mw dadknawjdawd\n\ndaiwdibaiwdbiaubwd"
+
