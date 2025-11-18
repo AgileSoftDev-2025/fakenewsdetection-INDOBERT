@@ -31,7 +31,7 @@ app = FastAPI(title="FakeNews Detection API", version="0.1.0")
 # CORS for local Next.js dev
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://abcd1234.ngrok.io"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
