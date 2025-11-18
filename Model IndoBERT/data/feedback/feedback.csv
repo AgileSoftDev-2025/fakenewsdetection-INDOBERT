@@ -29,3 +29,17 @@ id,timestamp,model_name,model_version,text_length,prediction,prob_hoax,confidenc
 28,1762264001,indobert,v1,118,0,0.39749956130981445,0.6025004982948303,,unknown,"Otoritas Jasa Keuangan (OJK) menyampaikan, aset perbankan syariah pada akhir September 2025 mencapai Rp 1.000 triliun."
 29,1762264097,indobert,v1,76,1,0.9999885559082031,0.9999885559082031,,unknown,"Bakso Remaja Gading\nDinyatakan Halal, Pemilik:\nSemoga Pelanggan Percaya\nLagi"
 30,1762264636,indobert,v1,76,1,0.9999885559082031,0.9999885559082031,,unknown,"Bakso Remaja Gading\nDinyatakan Halal, Pemilik:\nSemoga Pelanggan Percaya\nLagi"
+31,1763367858,indobert,v1,97,4,0.23509706556797028,0.255561888217926,,unknown,Harga BBM Naik\n\nHarga BBM Naik Pemerintah mengumumkan kenaikan harga BBM sebesar 30% mulai besok.
+32,1763368012,indobert,v1,345,2,0.12777520716190338,0.3420718014240265,,unknown,"Pria Kulon Progo Disekap Sindikat Scammer Kamboja, Dipukuli 3 Kali Seminggu\n\nHerlambang (23) pemuda asal Sindutan, Temon, Kulon Progo, DIY, berhasil lolos dari jeratan sindikat penipuan di Kamboja. Herlambang yang dijanjikan pekerjaan sebagai penjaga toko di Thailand, justru dipekerjakan sebagai scammer daring yang menargetkan warga Indonesia."
+33,1763368097,indobert,v1,226,2,0.1015520691871643,0.25305500626564026,,unknown,"Purbaya Sewa Hacker untuk Bongkar Anggaran DPR RI\n\nJagat media sosial kembali ramai dengan isu mengenai Menteri Keuangan, Purbaya Yudhi Sadewa yang disebut akan menyewa tim hacker untuk membobol data anggaran negara di DPR RI."
+34,1763368131,indobert,v1,33,1,0.3451206684112549,0.3451206684112549,,unknown,qdjbjkdwq\n\najxlanxlnlalncknlkanlk
+35,1763385660,indobert,v1,69,3,0.2623172402381897,0.33331215381622314,,unknown,Harga BBM Naik\n\nPemerintah mengumumkan kenaikan harga BBM sebesar 30%
+36,1763386554,indobert,v1,42,4,0.18052759766578674,0.3315006494522095,,unknown,Harga bbm naik\n\nharga bbm naik sekitar 30%
+37,1763388368,indobert,v1,22,2,0.18205301463603973,0.41156005859375,,unknown,hawfnwfjs\n\nszcjkkbjcbs
+38,1763388419,indobert,v1,33,4,0.1818195879459381,0.3228074312210083,,unknown,"dhghavjadwkj\n\nabkjbfaekjba,fznfla"
+39,1763388665,indobert,v1,22,1,0.2726760506629944,0.2726760506629944,,unknown,bbm naik\n\nbbm naik 40%
+40,1763388759,indobert,v1,22,1,0.2388576716184616,0.2388576716184616,,unknown,bbm naik\n\nbbm naik 40%
+41,1763390116,indobert,v1,41,3,0.14459402859210968,0.2332039177417755,,unknown,BBM NAIK\n\nBBM NAIK 50% sejak minggu depan
+42,1763390308,indobert,v1,22,3,0.18775548040866852,0.42997369170188904,,unknown,bbm naik\n\nbbm naik 89%
+43,1763390407,indobert,v1,22,4,0.17023523151874542,0.34700337052345276,,unknown,bbm naik\n\nbbm naik 78%
+44,1763390620,indobert,v1,65,0,0.21312102675437927,0.2503827214241028,,unknown,steffi zamora menikah\n\nsteffi zamora menikah pada 7 desember 2022

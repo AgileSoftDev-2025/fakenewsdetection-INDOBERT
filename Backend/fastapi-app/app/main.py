@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from dotenv import load_dotenv
+load_dotenv()  
+
 import sys
 from pathlib import Path
 from fastapi import FastAPI
@@ -24,20 +27,22 @@ app = FastAPI(title="FakeNews Detection API", version="0.1.0")
 # CORS for local Next.js dev
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://abcd1234.ngrok.io"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
 
+)
 # Routers
 from .api import predict as predict_router  # noqa: E402
 from .api import feedback as feedback_router  # noqa: E402
 from .api import admin as admin_router  # noqa: E402
+from .api import results as results_router
 
 app.include_router(predict_router.router, prefix="")
 app.include_router(feedback_router.router, prefix="")
 app.include_router(admin_router.router, prefix="")
+app.include_router(results_router.router, prefix="") 
 
 
 @app.get("/health")
