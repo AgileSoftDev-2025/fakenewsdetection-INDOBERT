@@ -9,10 +9,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -31,12 +27,12 @@ app = FastAPI(title="FakeNews Detection API", version="0.1.0")
 # CORS for local Next.js dev
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-
 )
+
 # Routers
 from .api import predict as predict_router  # noqa: E402
 from .api import feedback as feedback_router  # noqa: E402

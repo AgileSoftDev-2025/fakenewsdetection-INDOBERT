@@ -1,104 +1,65 @@
-'use client';
-
 import Link from "next/link";
-import { useState } from "react";
+
+// Hasil Analisis Page
+// Cara pakai:
+//   /hasil-analisis?result=valid&type=file&filename=NamaFile.pdf&ts=2025-09-09T19:43:49
+//   /hasil-analisis?result=hoax&type=text&title=Judul%20Berita
+// result: "valid" | "true" | "1" | "hoax" | "false" | "0"
+// type:   "file" | "text" (opsional, hanya untuk detail tampilan)
+// filename/title: info ringkas konten (opsional)
+// ts: ISO datetime string (opsional), default now
+
+function formatDate(input?: string) {
+  try {
+    const d = input ? new Date(input) : new Date();
+    return d.toLocaleString();
+  } catch {
+    return new Date().toLocaleString();
+  }
+}
 
 export default function HasilAnalisisPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const [sharing, setSharing] = useState(false);
-  const [shareSuccess, setShareSuccess] = useState(false);
-
   const resultRaw = String(searchParams.result ?? "").toLowerCase();
   const isValid = ["valid", "true", "1"].includes(resultRaw);
+  const isHoax = ["hoax", "false", "0"].includes(resultRaw);
 
+  // Detail input (opsional)
   const type = String(searchParams.type ?? "");
   const filename = String(searchParams.filename ?? "");
   const title = String(searchParams.title ?? "");
   const snippet = String(searchParams.snippet ?? "");
-  const analyzedAt = new Date(searchParams.ts ? String(searchParams.ts) : Date.now()).toLocaleString("id-ID");
+  const analyzedAt = formatDate(String(searchParams.ts ?? ""));
 
   const contentLabel = type === "file" ? filename || "—" : title || "—";
   const typeLabel = type ? (type === "file" ? "File" : "Teks") : "—";
 
   const banner = isValid
     ? {
+        // Hijau muda dengan sedikit transparansi
         bg: "bg-green-100/70",
         iconStroke: "stroke-green-700",
         heading: "Berita Valid",
         desc: "Berdasarkan analisis, berita ini kemungkinan besar valid dan dapat dipercaya.",
       }
     : {
+        // Merah muda dengan sedikit transparansi
         bg: "bg-red-100/70",
         iconStroke: "stroke-red-700",
         heading: "Kemungkinan Hoax",
         desc: "Berdasarkan analisis, berita ini kemungkinan besar tidak akurat atau menyesatkan.",
       };
 
-  // Fungsi untuk membagikan hasil
-  const handleBagikan = async () => {
-    setSharing(true);
-    setShareSuccess(false);
-    
-    try {
-      // 1. Kirim data ke backend untuk disimpan
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/results`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title || null,
-          text: snippet || contentLabel,
-          prediction: isValid ? 0 : 1,
-          prob_hoax: isValid ? 0.05 : 0.95,
-          model_version: "indobert-base",
-          extracted_text: null
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Gagal menyimpan hasil ke database");
-      }
-
-      // 2. Ambil ID dari response
-      const data = await response.json();
-      
-      if (!data.id) {
-        throw new Error("ID tidak ditemukan dalam response");
-      }
-
-      // 3. Buat URL publik
-      const shareUrl = `${window.location.origin}/hasil/${data.id}`;
-
-      // 4. Share atau copy link
-      if (navigator.share) {
-        // Jika browser support Web Share API (mobile)
-        await navigator.share({
-          title: banner.heading,
-          text: `Hasil analisis berita: ${banner.heading}`,
-          url: shareUrl
-        });
-        setShareSuccess(true);
-      } else {
-        // Fallback: copy ke clipboard
-        await navigator.clipboard.writeText(shareUrl);
-        alert(`✅ Link berhasil disalin!\n\nLink ini bisa dibagikan ke siapa saja:\n${shareUrl}`);
-        setShareSuccess(true);
-      }
-      
-    } catch (error) {
-      console.error("Error saat membagikan:", error);
-      alert("❌ Gagal membuat link. Silakan coba lagi.");
-    } finally {
-      setSharing(false);
-    }
-  };
-
   return (
     <div className="container py-6">
+      {/* Top bar dihilangkan sesuai permintaan (hanya gunakan tombol "Cek Lagi" di bawah) */}
+
       {/* Banner */}
       <div className={`card p-12 ${banner.bg} flex flex-col items-center text-center mb-6`}>
+        {/* Icon */}
         {isValid ? (
           <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 ${banner.iconStroke}`} viewBox="0 0 24 24" fill="none" strokeWidth="1.5">
             <circle cx="12" cy="12" r="9" className={banner.iconStroke}></circle>
@@ -146,10 +107,10 @@ export default function HasilAnalisisPage({
           <div className="mb-2 text-sm font-semibold text-slate-700">Rekomendasi</div>
           <div className="text-xs text-slate-500 mb-3">Beberapa referensi dari berita asli yang serupa</div>
           <ul className="list-disc list-inside text-sm text-slate-800 space-y-1">
-            <li><a className="hover:underline text-blue-600" href="https://turnbackhoax.id" target="_blank" rel="noopener">TurnBackHoax.id</a></li>
-            <li><a className="hover:underline text-blue-600" href="https://cekfakta.com" target="_blank" rel="noopener">CekFakta.com</a></li>
-            <li><a className="hover:underline text-blue-600" href="https://www.liputan6.com/cek-fakta" target="_blank" rel="noopener">Liputan6 Cek Fakta</a></li>
-            <li><a className="hover:underline text-blue-600" href="https://www.kominfo.go.id" target="_blank" rel="noopener">Kominfo</a></li>
+            <li><a className="hover:underline" href="#">Berita 1 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 2 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 3 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 4 Link</a></li>
           </ul>
         </div>
       </div>
@@ -158,29 +119,16 @@ export default function HasilAnalisisPage({
       <div className="card p-5 mt-6">
         <div className="text-sm font-semibold text-slate-700">Tindakan Selanjutnya</div>
         <div className="text-xs text-slate-500">Pilih apa yang ingin Anda lakukan dengan hasil ini</div>
-        
-        {shareSuccess && (
-          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-800">
-            ✅ Link berhasil dibuat! Anda bisa membagikannya ke siapa saja.
-          </div>
-        )}
-        
         <div className="mt-4 flex flex-wrap gap-3 items-center">
-          <button
-            type="button"
-            className="btn-outline"
-            onClick={handleBagikan}
-            disabled={sharing}
-          >
-            {sharing ? "Membuat Link..." : "🔗 Bagikan Hasil"}
-          </button>
+          {/* TODO: Tambahkan handler Simpan di sini. Misal: onClick={() => handleSimpan(data)} */}
+          <button type="button" className="btn-outline">Simpan</button>
 
-          <Link href="/" className="btn ml-auto">
-            🔍 Cek Lagi
-          </Link>
+          {/* TODO: Tambahkan handler Bagikan di sini. Misal: onClick={() => handleBagikan(url)} */}
+          <button type="button" className="btn-outline">Bagikan</button>
+
+          <Link href="/" className="btn ml-auto">Cek Lagi</Link>
         </div>
       </div>
     </div>
   );
 }
-
