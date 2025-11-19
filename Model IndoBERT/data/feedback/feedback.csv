@@ -30,3 +30,8 @@ id,timestamp,model_name,model_version,text_length,prediction,prob_hoax,confidenc
 29,1762264097,indobert,v1,76,1,0.9999885559082031,0.9999885559082031,,unknown,"Bakso Remaja Gading\nDinyatakan Halal, Pemilik:\nSemoga Pelanggan Percaya\nLagi"
 30,1762264636,indobert,v1,76,1,0.9999885559082031,0.9999885559082031,,unknown,"Bakso Remaja Gading\nDinyatakan Halal, Pemilik:\nSemoga Pelanggan Percaya\nLagi"
 31,1762425682,indobert,v1,37,1,0.9999866485595703,0.9999866485595703,,unknown,"a,mw dadknawjdawd\n\ndaiwdibaiwdbiaubwd"
+32,1762915912,indobert,v1,41,1,0.9999773502349854,0.9999773502349854,,unknown,wakdoajnsojnajonfoansfkoadkawkdajsdjnaowd
+33,1762916381,indobert,v1,303,1,0.9999867677688599,0.9999867677688599,,unknown,"Jokowi Marah Terhadap Purbaya yang Tolak Tanggung Kerugian Kereta Cepat\n\nPak Purbaya Di Skak Jokowi, Terlalu Ikut Campur Urusan kereta Cepat..!!!!! Baru kali ini liat Jokowi marah. Beginilah pernyataan Jokowi atas kerugian kreta cepat yang tak mau hutangnya di tanggung Pak Purbaya, Minggu (19/10/2025)."
+34,1762916512,indobert,v1,109,1,0.9999815225601196,0.9999815225601196,,unknown,"PRESIDEN CHINA BILANG\nCHINA GK PERNAH MENINDAS\nRAKYAT INDONESIA TAPI\nJOKOWI LAH YG MENINDAS\nRAKYAT INDONESIA"""
+35,1762917288,indobert,v1,54,1,0.9999879598617554,0.9999879598617554,,unknown,The government officially announces a national holiday
+36,1762917291,indobert,v1,54,1,0.9999879598617554,0.9999879598617554,,unknown,The government officially announces a national holiday

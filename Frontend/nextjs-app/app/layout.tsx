@@ -23,7 +23,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/" className="hover:underline">Home</a>
               <a href="/history" className="hover:underline">History</a>
               <a href="/admin" className="hover:underline">Admin</a>
-              <button className="btn-outline">Keluar</button>
             </nav>
           </div>
 
