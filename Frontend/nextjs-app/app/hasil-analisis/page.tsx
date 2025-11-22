@@ -1,27 +1,111 @@
-'use client';
-
+"use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState } from "react"; // Tambahkan useState
+
+// ... (Helper formatDate tetap sama) ...
+function formatDate(input?: string) {
+  try {
+    const d = input ? new Date(input) : new Date();
+    return d.toLocaleString();
+  } catch {
+    return new Date().toLocaleString();
+  }
+}
 
 export default function HasilAnalisisPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
+  // --- STATE TAMBAHAN ---
+  const [loadingPdf, setLoadingPdf] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const [shareSuccess, setShareSuccess] = useState(false);
+  // ---------------------
 
   const resultRaw = String(searchParams.result ?? "").toLowerCase();
   const isValid = ["valid", "true", "1"].includes(resultRaw);
-
+  
+  // Detail input
   const type = String(searchParams.type ?? "");
   const filename = String(searchParams.filename ?? "");
   const title = String(searchParams.title ?? "");
   const snippet = String(searchParams.snippet ?? "");
-  const analyzedAt = new Date(searchParams.ts ? String(searchParams.ts) : Date.now()).toLocaleString("id-ID");
+  const analyzedAt = formatDate(String(searchParams.ts ?? ""));
 
   const contentLabel = type === "file" ? filename || "—" : title || "—";
   const typeLabel = type ? (type === "file" ? "File" : "Teks") : "—";
+
+  const handleDownloadPdf = async () => {
+    setLoadingPdf(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      
+      const response = await fetch(`${baseUrl}/generate-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title || "Tanpa Judul",
+          content: snippet || contentLabel,
+          prediction: isValid ? "VALID (Fakta)" : "HOAX (Palsu)",
+          date: analyzedAt
+        }),
+      });
+
+      if (!response.ok) throw new Error("Gagal generate PDF");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Laporan-Analisis-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+    } catch (error) {
+      console.error(error);
+      alert("Gagal mengunduh PDF. Pastikan backend berjalan.");
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
+
+  const handleBagikan = async () => {
+    setSharing(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      const res = await fetch(`${baseUrl}/results`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            title: title || null,
+            text: snippet || contentLabel,
+            prediction: isValid ? 0 : 1,
+            prob_hoax: isValid ? 0.05 : 0.95,
+            model_version: "indobert-base",
+            extracted_text: null
+        })
+      });
+      if (!res.ok) throw new Error("Gagal save result");
+      const data = await res.json();
+      // Gunakan ID dari backend untuk membuat link share
+      const shareUrl = `${window.location.origin}/hasil/${data.id}`;
+      
+      if (navigator.share) {
+        await navigator.share({ title: "Hasil Analisis", text: "Cek berita ini!", url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert(`Link tersalin: ${shareUrl}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Gagal membagikan hasil.");
+    } finally {
+      setSharing(false);
+    }
+  };
+
 
   const banner = isValid
     ? {
@@ -37,69 +121,12 @@ export default function HasilAnalisisPage({
         desc: "Berdasarkan analisis, berita ini kemungkinan besar tidak akurat atau menyesatkan.",
       };
 
-  // Fungsi untuk membagikan hasil
-  const handleBagikan = async () => {
-    setSharing(true);
-    setShareSuccess(false);
-    
-    try {
-      // 1. Kirim data ke backend untuk disimpan
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/results`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title || null,
-          text: snippet || contentLabel,
-          prediction: isValid ? 0 : 1,
-          prob_hoax: isValid ? 0.05 : 0.95,
-          model_version: "indobert-base",
-          extracted_text: null
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Gagal menyimpan hasil ke database");
-      }
-
-      // 2. Ambil ID dari response
-      const data = await response.json();
-      
-      if (!data.id) {
-        throw new Error("ID tidak ditemukan dalam response");
-      }
-
-      // 3. Buat URL publik
-      const shareUrl = `${window.location.origin}/hasil/${data.id}`;
-
-      // 4. Share atau copy link
-      if (navigator.share) {
-        // Jika browser support Web Share API (mobile)
-        await navigator.share({
-          title: banner.heading,
-          text: `Hasil analisis berita: ${banner.heading}`,
-          url: shareUrl
-        });
-        setShareSuccess(true);
-      } else {
-        // Fallback: copy ke clipboard
-        await navigator.clipboard.writeText(shareUrl);
-        alert(`✅ Link berhasil disalin!\n\nLink ini bisa dibagikan ke siapa saja:\n${shareUrl}`);
-        setShareSuccess(true);
-      }
-      
-    } catch (error) {
-      console.error("Error saat membagikan:", error);
-      alert("❌ Gagal membuat link. Silakan coba lagi.");
-    } finally {
-      setSharing(false);
-    }
-  };
-
   return (
     <div className="container py-6">
       {/* Banner */}
       <div className={`card p-12 ${banner.bg} flex flex-col items-center text-center mb-6`}>
-        {isValid ? (
+         {/* ... Icon Logic ... */}
+         {isValid ? (
           <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 ${banner.iconStroke}`} viewBox="0 0 24 24" fill="none" strokeWidth="1.5">
             <circle cx="12" cy="12" r="9" className={banner.iconStroke}></circle>
             <path d="M8 12l3 3 5-6" className={banner.iconStroke} strokeLinecap="round" strokeLinejoin="round" />
@@ -114,11 +141,10 @@ export default function HasilAnalisisPage({
         <p className="mt-2 max-w-2xl text-sm text-slate-700">{banner.desc}</p>
       </div>
 
-      {/* Content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Detail Input */}
         <div className="card p-5">
-          <div className="mb-2 flex items-center gap-2 text-slate-700">
+           <div className="mb-2 flex items-center gap-2 text-slate-700">
             <span>⬆️</span>
             <div>
               <div className="text-sm font-semibold">Detail Input</div>
@@ -143,13 +169,13 @@ export default function HasilAnalisisPage({
 
         {/* Rekomendasi */}
         <div className="card p-5">
-          <div className="mb-2 text-sm font-semibold text-slate-700">Rekomendasi</div>
+           <div className="mb-2 text-sm font-semibold text-slate-700">Rekomendasi</div>
           <div className="text-xs text-slate-500 mb-3">Beberapa referensi dari berita asli yang serupa</div>
           <ul className="list-disc list-inside text-sm text-slate-800 space-y-1">
-            <li><a className="hover:underline text-blue-600" href="https://turnbackhoax.id" target="_blank" rel="noopener">TurnBackHoax.id</a></li>
-            <li><a className="hover:underline text-blue-600" href="https://cekfakta.com" target="_blank" rel="noopener">CekFakta.com</a></li>
-            <li><a className="hover:underline text-blue-600" href="https://www.liputan6.com/cek-fakta" target="_blank" rel="noopener">Liputan6 Cek Fakta</a></li>
-            <li><a className="hover:underline text-blue-600" href="https://www.kominfo.go.id" target="_blank" rel="noopener">Kominfo</a></li>
+            <li><a className="hover:underline" href="#">Berita 1 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 2 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 3 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 4 Link</a></li>
           </ul>
         </div>
       </div>
@@ -158,29 +184,36 @@ export default function HasilAnalisisPage({
       <div className="card p-5 mt-6">
         <div className="text-sm font-semibold text-slate-700">Tindakan Selanjutnya</div>
         <div className="text-xs text-slate-500">Pilih apa yang ingin Anda lakukan dengan hasil ini</div>
-        
-        {shareSuccess && (
-          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-800">
-            ✅ Link berhasil dibuat! Anda bisa membagikannya ke siapa saja.
-          </div>
-        )}
-        
         <div className="mt-4 flex flex-wrap gap-3 items-center">
-          <button
-            type="button"
-            className="btn-outline"
-            onClick={handleBagikan}
-            disabled={sharing}
+          
+          <button 
+            type="button" 
+            onClick={handleDownloadPdf} 
+            disabled={loadingPdf}
+            className="btn-outline flex items-center gap-2"
           >
-            {sharing ? "Membuat Link..." : "🔗 Bagikan Hasil"}
+            {loadingPdf ? "Menyiapkan..." : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Simpan PDF
+              </>
+            )}
           </button>
 
-          <Link href="/" className="btn ml-auto">
-            🔍 Cek Lagi
-          </Link>
+          <button 
+            type="button" 
+            onClick={handleBagikan}
+            disabled={sharing}
+            className="btn-outline"
+          >
+            {sharing ? "..." : "Bagikan"}
+          </button>
+
+          <Link href="/" className="btn ml-auto">Cek Lagi</Link>
         </div>
       </div>
     </div>
   );
 }
-
