@@ -72,3 +72,9 @@ id,timestamp,model_name,model_version,text_length,prediction,prob_hoax,confidenc
 56,1763823830,indobert,v1,37,3,0.17953285574913025,0.2987048923969269,,unknown,Pemerintah mengumumkan kebijakan baru
 57,1763875370,indobert,v1,62,3,0.1743684709072113,0.2732570469379425,,unknown,Uji Kelayakan HIMSI 2025\n\nUji Kelayakan HIMSI 2025 hari minggu
 58,1763898788,indobert,v1,74,3,0.17211131751537323,0.2564377188682556,,unknown,Malam ini mencoba Tomoro Coffee HEHHEHE\n\nTempatnya enak juga dan sepii bgt
+59,1763973481,indobert,v1,23,1,0.38449999690055847,0.38449999690055847,,unknown,ADSBKJ\n\nDASBKJBSDASJKBK
+60,1763974015,indobert,v1,20,0,0.2560206353664398,0.26709821820259094,,unknown,asnkjcq\n\nac jkasbajc
+61,1763974035,indobert,v1,21,2,0.15981461107730865,0.3226848840713501,,unknown,acsbklbjsa\n\nakshbkjab
+62,1763974273,indobert,v1,18,3,0.13441160321235657,0.25587156414985657,,unknown,kabjk\n\nxasnbkascsa
+63,1763974325,indobert,v1,24,0,0.15456943213939667,0.23356452584266663,,unknown,csab kal bkjblk\n\nansbkjc
+64,1763974531,indobert,v1,10,3,0.17798051238059998,0.26094573736190796,,unknown,sadmnbjksa
