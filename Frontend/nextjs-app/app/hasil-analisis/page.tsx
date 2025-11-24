@@ -86,13 +86,13 @@ export default function HasilAnalisisPage({
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Backend error:', errorText);
+        console.error('❌ Backend error:', errorText);
         throw new Error(`Gagal menyimpan hasil (${response.status}): ${errorText}`);
       }
 
       // 3. Ambil ID dari response
       const data = await response.json();
-      console.log('Backend response:', data);
+      console.log('✅ Backend response:', data);
       
       if (!data.id) {
         throw new Error("ID tidak ditemukan dalam response");
@@ -104,7 +104,7 @@ export default function HasilAnalisisPage({
         : (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
       
       const shareUrl = `${baseUrl}/hasil/${data.id}`;
-      console.log('Share URL:', shareUrl);
+      console.log('📤 Share URL:', shareUrl);
 
       // 5. Share atau copy link
       if (navigator.share) {
@@ -116,13 +116,13 @@ export default function HasilAnalisisPage({
         setShareSuccess(true);
       } else {
         await navigator.clipboard.writeText(shareUrl);
-        alert(` Link berhasil disalin!\n\nLink ini bisa dibagikan ke siapa saja:\n${shareUrl}`);
+        alert(`✅ Link berhasil disalin!\n\nLink ini bisa dibagikan ke siapa saja:\n${shareUrl}`);
         setShareSuccess(true);
       }
       
     } catch (error) {
-      console.error("Error saat membagikan:", error);
-      alert(` Gagal membuat link: ${error instanceof Error ? error.message : 'Unknown error'}\n\nCek console untuk detail.`);
+      console.error("❌ Error saat membagikan:", error);
+      alert(`❌ Gagal membuat link: ${error instanceof Error ? error.message : 'Unknown error'}\n\nCek console untuk detail.`);
     } finally {
       setSharing(false);
     }
