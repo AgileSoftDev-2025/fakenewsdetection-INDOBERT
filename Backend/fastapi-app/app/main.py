@@ -1,18 +1,22 @@
 from __future__ import annotations
 
 from dotenv import load_dotenv
-load_dotenv()  
+load_dotenv()
 
 import sys
 from pathlib import Path
-from fastapi import FastAPI
+from typing import List, Optional
+
+from fastapi.routing import APIRoute
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
 import os
 import logging
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
+import httpx
+from .api import related as related_router
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)  # ← TAMBAHKAN INI
@@ -58,7 +62,8 @@ from .api import results as results_router
 app.include_router(predict_router.router, prefix="")
 app.include_router(feedback_router.router, prefix="")
 app.include_router(admin_router.router, prefix="")
-app.include_router(results_router.router, prefix="") 
+app.include_router(results_router.router, prefix="")
+app.include_router(related_router.router, prefix="")
 
 
 @app.get("/health")
