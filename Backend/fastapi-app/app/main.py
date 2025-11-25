@@ -23,8 +23,9 @@ import httpx
 from .api import related as related_router
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)  # ← TAMBAHKAN INI
 
-# Ensure repo root on sys.path so we can import Model IndoBERT/src
+# Ensure repo root on sys.path
 HERE = Path(__file__).resolve()
 REPO_ROOT = HERE.parents[3]
 MODEL_DIR = REPO_ROOT / "Model IndoBERT"
@@ -35,21 +36,32 @@ if str(MODEL_DIR) not in sys.path:
 
 app = FastAPI(title="FakeNews Detection API", version="0.1.0")
 
+# ✅ CORS - Allow localhost, ngrok, dan production domain
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    # Tambahkan ngrok URL kalau pakai ngrok (tapi ini gak ideal)
+    # "https://your-ngrok-url.ngrok.io",
+]
 
-# CORS untuk Next.js
+# Kalau ada env var FRONTEND_URL, tambahkan
+if os.getenv("FRONTEND_URL"):
+    ALLOWED_ORIGINS.append(os.getenv("FRONTEND_URL"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Routers lain (sudah ada di project)
-from .api import predict as predict_router  # noqa: E402
-from .api import feedback as feedback_router  # noqa: E402
-from .api import admin as admin_router  # noqa: E402
-from .api import results as results_router  # noqa: E402
+# Routers
+from .api import predict as predict_router
+from .api import feedback as feedback_router
+from .api import admin as admin_router
+from .api import results as results_router
 
 app.include_router(predict_router.router, prefix="")
 app.include_router(feedback_router.router, prefix="")
@@ -63,6 +75,7 @@ app.include_router(related_router.router, prefix="")
 
 @app.get("/health")
 async def health():
+    logger.info("Health check endpoint hit")  # ← TAMBAHKAN LOG
     return {"status": "ok"}
 
 
@@ -97,5 +110,3 @@ def ensure_model_available():
         logger.info("Model snapshot downloaded to %s", dest_dir)
     except Exception as exc:
         logger.exception("Failed to download model snapshot from Hugging Face: %s", exc)
-
-

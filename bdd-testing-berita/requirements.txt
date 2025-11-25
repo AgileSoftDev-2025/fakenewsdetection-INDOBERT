@@ -1,0 +1,12 @@
+
+# BDD Testing Dependencies
+behave==1.2.6
+selenium==4.15.2
+webdriver-manager==4.0.1
+pyperclip==1.8.2
+
+# HTTP requests
+requests==2.31.0
+
+# Additional utilities
+pytest==7.4.3
