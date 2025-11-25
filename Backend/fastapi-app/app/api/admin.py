@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from typing import Any, Dict
 import csv
+import os
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from src.services.model_registry import get_current_version  # type: ignore
+from app.database import get_db
+from app.models import Feedback
 
 router = APIRouter()
 
@@ -34,41 +38,49 @@ async def model_version() -> VersionResponse:
 
 
 @router.get("/admin/stats", response_model=StatsResponse)
-async def get_stats() -> StatsResponse:
+async def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
     """
-    Get statistics from feedback.csv
+    Get statistics from database or CSV fallback
     Returns total checks, hoax count, valid count, and percentages
     """
     try:
-        # Path to feedback.csv
-        feedback_path = (
-            Path(__file__).resolve().parents[4]
-            / "Model IndoBERT"
-            / "data"
-            / "feedback"
-            / "feedback.csv"
-        )
+        # Check if database mode is enabled
+        use_database = os.getenv("USE_DATABASE", "false").lower() == "true"
 
-        if not feedback_path.exists():
-            # Return default values if file doesn't exist
-            return StatsResponse(
-                total=0, hoax=0, valid=0, hoax_percentage=0.0, valid_percentage=0.0
+        if use_database:
+            # Get stats from database
+            total = db.query(Feedback).count()
+            hoax_count = db.query(Feedback).filter(Feedback.prediction == 1).count()
+            valid_count = db.query(Feedback).filter(Feedback.prediction == 0).count()
+        else:
+            # Fallback to CSV (for development)
+            feedback_path = (
+                Path(__file__).resolve().parents[4]
+                / "Model IndoBERT"
+                / "data"
+                / "feedback"
+                / "feedback.csv"
             )
 
-        # Read CSV and count statistics
-        total = 0
-        hoax_count = 0
-        valid_count = 0
+            if not feedback_path.exists():
+                return StatsResponse(
+                    total=0, hoax=0, valid=0, hoax_percentage=0.0, valid_percentage=0.0
+                )
 
-        with open(feedback_path, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                total += 1
-                # prediction: 1 = hoax, 0 = valid
-                if row.get("prediction") == "1":
-                    hoax_count += 1
-                else:
-                    valid_count += 1
+            # Read CSV and count statistics
+            total = 0
+            hoax_count = 0
+            valid_count = 0
+
+            with open(feedback_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    total += 1
+                    # prediction: 1 = hoax, 0 = valid
+                    if row.get("prediction") == "1":
+                        hoax_count += 1
+                    else:
+                        valid_count += 1
 
         # Calculate percentages
         hoax_percentage = round((hoax_count / total * 100), 1) if total > 0 else 0.0
