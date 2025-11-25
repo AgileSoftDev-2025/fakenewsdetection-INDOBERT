@@ -1,0 +1,10 @@
+{
+  "id": "7766a351-3bc",
+  "title": "Test Berita",
+  "text": "Ini adalah test berita untuk BDD testing",
+  "prediction": 1,
+  "prob_hoax": 0.95,
+  "model_version": "indobert-base",
+  "extracted_text": null,
+  "created_at": "2025-11-22T21:57:09.899709"
+}

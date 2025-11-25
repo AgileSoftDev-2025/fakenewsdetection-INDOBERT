@@ -88,12 +88,82 @@ const searchQuery = `${title} ${snippet}`.trim();
         desc: "Berdasarkan analisis, berita ini kemungkinan besar tidak akurat atau menyesatkan.",
       };
 
+  // ✅ Fungsi untuk membagikan hasil (FIXED)
+  const handleBagikan = async () => {
+    setSharing(true);
+    setShareSuccess(false);
+    
+    try {
+      // ✅ 1. Ambil API URL dari env variable
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      
+      console.log('🔄 Sending data to:', `${apiUrl}/results`);
+      
+      // 2. Kirim data ke backend untuk disimpan
+      const response = await fetch(`${apiUrl}/results`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: title || null,
+          text: snippet || contentLabel,
+          prediction: isValid ? 0 : 1,
+          prob_hoax: isValid ? 0.05 : 0.95,
+          model_version: "indobert-base",
+          extracted_text: null
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Backend error:', errorText);
+        throw new Error(`Gagal menyimpan hasil (${response.status}): ${errorText}`);
+      }
+
+      // 3. Ambil ID dari response
+      const data = await response.json();
+      console.log('✅ Backend response:', data);
+      
+      if (!data.id) {
+        throw new Error("ID tidak ditemukan dalam response");
+      }
+
+      // ✅ 4. Generate share URL (dinamis berdasarkan environment)
+      const baseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
+      
+      const shareUrl = `${baseUrl}/hasil/${data.id}`;
+      console.log('📤 Share URL:', shareUrl);
+
+      // 5. Share atau copy link
+      if (navigator.share) {
+        await navigator.share({
+          title: banner.heading,
+          text: `Hasil analisis berita: ${banner.heading}`,
+          url: shareUrl
+        });
+        setShareSuccess(true);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert(`✅ Link berhasil disalin!\n\nLink ini bisa dibagikan ke siapa saja:\n${shareUrl}`);
+        setShareSuccess(true);
+      }
+      
+    } catch (error) {
+      console.error("❌ Error saat membagikan:", error);
+      alert(`❌ Gagal membuat link: ${error instanceof Error ? error.message : 'Unknown error'}\n\nCek console untuk detail.`);
+    } finally {
+      setSharing(false);
+    }
+  };
+
   return (
     <div className="container py-6">
       {/* Banner */}
-      <div
-        className={`card p-12 ${banner.bg} flex flex-col items-center text-center mb-6`}
-      >
+      <div className={`card p-12 ${banner.bg} flex flex-col items-center text-center mb-6`}>
+        {/* Icon */}
         {isValid ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -210,15 +280,18 @@ const searchQuery = `${title} ${snippet}`.trim();
           Pilih apa yang ingin Anda lakukan dengan hasil ini
         </div>
         <div className="mt-4 flex flex-wrap gap-3 items-center">
-          <button type="button" className="btn-outline">
-            Simpan
+          <button type="button" className="btn-outline">Simpan</button>
+
+          <button 
+            type="button" 
+            className="btn-outline"
+            onClick={handleBagikan}
+            disabled={sharing}
+          >
+            {sharing ? "Membuat Link..." : "Bagikan"}
           </button>
-          <button type="button" className="btn-outline">
-            Bagikan
-          </button>
-          <Link href="/" className="btn ml-auto">
-            Cek Lagi
-          </Link>
+
+          <Link href="/" className="btn ml-auto">Cek Lagi</Link>
         </div>
       </div>
     </div>

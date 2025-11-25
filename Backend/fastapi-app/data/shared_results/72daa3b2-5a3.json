@@ -1,0 +1,10 @@
+{
+  "id": "72daa3b2-5a3",
+  "title": null,
+  "text": "—",
+  "prediction": 1,
+  "prob_hoax": 0.95,
+  "model_version": "indobert-base",
+  "extracted_text": null,
+  "created_at": "2025-11-23T18:57:45.986845"
+}
