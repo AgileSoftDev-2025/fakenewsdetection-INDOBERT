@@ -1,4 +1,7 @@
+'use client'
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type RelatedNewsItem = {
   title: string;
@@ -25,54 +28,59 @@ function formatDate(input?: string) {
   }
 }
 
-export default async function HasilAnalisisPage({
-  searchParams,
-}: {
-  searchParams: Record<string, string | string[] | undefined>;
-}) {
-  const resultRaw = String(searchParams.result ?? "").toLowerCase();
-  const isValid = ["valid", "true", "1"].includes(resultRaw);
-  const isHoax = ["hoax", "false", "0"].includes(resultRaw);
+export default function HasilAnalisisPage() {
+  const searchParams = useSearchParams();
+  const [relatedNews, setRelatedNews] = useState<RelatedNewsItem[]>([]);
+  const [sharing, setSharing] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
-  // Detail input (opsional)
-  const type = String(searchParams.type ?? "");
-  const filename = String(searchParams.filename ?? "");
-  const title = String(searchParams.title ?? "");
-  const snippet = String(searchParams.snippet ?? "");
-  const analyzedAt = formatDate(String(searchParams.ts ?? ""));
+  const resultRaw = searchParams.get('result') || '';
+  const isValid = ["valid", "true", "1"].includes(resultRaw.toLowerCase());
+  const isHoax = ["hoax", "false", "0"].includes(resultRaw.toLowerCase());
+
+  const type = searchParams.get('type') || '';
+  const filename = searchParams.get('filename') || '';
+  const title = searchParams.get('title') || '';
+  const snippet = searchParams.get('snippet') || '';
+  const ts = searchParams.get('ts') || '';
+  const analyzedAt = formatDate(ts);
 
   const contentLabel = type === "file" ? filename || "—" : title || "—";
   const typeLabel = type ? (type === "file" ? "File" : "Teks") : "—";
 
-  // ---- FETCH REKOMENDASI BERITA ----
-const searchQuery = `${title} ${snippet}`.trim();
- // pakai judul, kalau kosong pakai cuplikan
-  let relatedNews: RelatedNewsItem[] = [];
+  // Fetch related news on component mount
+  useEffect(() => {
+    const searchQuery = `${title} ${snippet}`.trim();
+    if (!searchQuery) return;
 
-  if (searchQuery) {
-    try {
-      const params = new URLSearchParams({
-        query: searchQuery,
-        limit: "4",
-      });
+    async function fetchRelatedNews() {
+      try {
+        const params = new URLSearchParams({
+          query: searchQuery,
+          limit: "4",
+        });
 
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+        const baseUrl =
+          process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
-      const resp = await fetch(
-        `${baseUrl}/related-news?${params.toString()}`,
-        { cache: "no-store" }
-      );
+        const resp = await fetch(
+          `${baseUrl}/related-news?${params.toString()}`,
+          { cache: "no-store" }
+        );
 
-      if (resp.ok) {
-        relatedNews = await resp.json();
-      } else {
-        console.error("Gagal fetch related-news:", await resp.text());
+        if (resp.ok) {
+          const data = await resp.json();
+          setRelatedNews(data);
+        } else {
+          console.error("Gagal fetch related-news:", await resp.text());
+        }
+      } catch (err) {
+        console.error("Gagal mengambil related news:", err);
       }
-    } catch (err) {
-      console.error("Gagal mengambil related news:", err);
     }
-  }
+
+    fetchRelatedNews();
+  }, [title, snippet]);
 
   const banner = isValid
     ? {
@@ -88,18 +96,18 @@ const searchQuery = `${title} ${snippet}`.trim();
         desc: "Berdasarkan analisis, berita ini kemungkinan besar tidak akurat atau menyesatkan.",
       };
 
-  // ✅ Fungsi untuk membagikan hasil (FIXED)
+  // Fungsi untuk membagikan hasil
   const handleBagikan = async () => {
     setSharing(true);
     setShareSuccess(false);
     
     try {
-      // ✅ 1. Ambil API URL dari env variable
+      // Ambil API URL dari env variable
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
       
       console.log('🔄 Sending data to:', `${apiUrl}/results`);
       
-      // 2. Kirim data ke backend untuk disimpan
+      // Kirim data ke backend untuk disimpan
       const response = await fetch(`${apiUrl}/results`, {
         method: "POST",
         headers: { 
@@ -121,7 +129,7 @@ const searchQuery = `${title} ${snippet}`.trim();
         throw new Error(`Gagal menyimpan hasil (${response.status}): ${errorText}`);
       }
 
-      // 3. Ambil ID dari response
+      // Ambil ID dari response
       const data = await response.json();
       console.log('✅ Backend response:', data);
       
@@ -129,7 +137,7 @@ const searchQuery = `${title} ${snippet}`.trim();
         throw new Error("ID tidak ditemukan dalam response");
       }
 
-      // ✅ 4. Generate share URL (dinamis berdasarkan environment)
+      // Generate share URL (dinamis berdasarkan environment)
       const baseUrl = typeof window !== 'undefined' 
         ? window.location.origin 
         : (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
@@ -137,7 +145,7 @@ const searchQuery = `${title} ${snippet}`.trim();
       const shareUrl = `${baseUrl}/hasil/${data.id}`;
       console.log('📤 Share URL:', shareUrl);
 
-      // 5. Share atau copy link
+      // Share atau copy link
       if (navigator.share) {
         await navigator.share({
           title: banner.heading,

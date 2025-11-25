@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import csv
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 
 from src.services.model_registry import get_current_version  # type: ignore
-from app.database import get_db
-from app.models import Feedback
 
 router = APIRouter()
 
@@ -38,7 +35,7 @@ async def model_version() -> VersionResponse:
 
 
 @router.get("/admin/stats", response_model=StatsResponse)
-async def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
+async def get_stats() -> StatsResponse:
     """
     Get statistics from database or CSV fallback
     Returns total checks, hoax count, valid count, and percentages
@@ -48,10 +45,22 @@ async def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
         use_database = os.getenv("USE_DATABASE", "false").lower() == "true"
 
         if use_database:
-            # Get stats from database
-            total = db.query(Feedback).count()
-            hoax_count = db.query(Feedback).filter(Feedback.prediction == 1).count()
-            valid_count = db.query(Feedback).filter(Feedback.prediction == 0).count()
+            # Import database modules only when needed
+            from sqlalchemy.orm import Session
+            from app.database import SessionLocal
+            from app.models import Feedback
+
+            # Create database session
+            db = SessionLocal()
+            try:
+                # Get stats from database
+                total = db.query(Feedback).count()
+                hoax_count = db.query(Feedback).filter(Feedback.prediction == 1).count()
+                valid_count = (
+                    db.query(Feedback).filter(Feedback.prediction == 0).count()
+                )
+            finally:
+                db.close()
         else:
             # Fallback to CSV (for development)
             feedback_path = (

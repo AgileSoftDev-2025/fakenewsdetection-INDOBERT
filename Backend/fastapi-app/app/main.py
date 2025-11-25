@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 from dotenv import load_dotenv
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
 load_dotenv()
 
 import sys
@@ -67,10 +64,7 @@ app.include_router(predict_router.router, prefix="")
 app.include_router(feedback_router.router, prefix="")
 app.include_router(admin_router.router, prefix="")
 app.include_router(results_router.router, prefix="")
-<<<<<<< Updated upstream
 app.include_router(related_router.router, prefix="")
-=======
->>>>>>> Stashed changes
 
 
 @app.get("/health")
