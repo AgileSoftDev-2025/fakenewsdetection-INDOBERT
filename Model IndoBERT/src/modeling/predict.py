@@ -5,6 +5,7 @@ from typing import Iterable, List, Tuple, Optional
 from ..config import SETTINGS
 from ..features import normalize_batch
 from .. import feedback
+from ..services.model_registry import get_current_version
 
 
 def predict_fasttext(
@@ -97,6 +98,7 @@ def predict_indobert(
             probs_hoax,
             confidences,
             model_name="indobert",
+            model_version=get_current_version(),
             user_labels=user_labels,
         )
 

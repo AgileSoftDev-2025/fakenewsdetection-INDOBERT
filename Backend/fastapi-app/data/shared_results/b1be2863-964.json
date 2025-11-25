@@ -1,0 +1,10 @@
+{
+  "id": "b1be2863-964",
+  "title": "kenapa ya",
+  "text": "kenapa ya",
+  "prediction": 0,
+  "prob_hoax": 0.05,
+  "model_version": "indobert-base",
+  "extracted_text": null,
+  "created_at": "2025-11-22T17:08:44.041848"
+}

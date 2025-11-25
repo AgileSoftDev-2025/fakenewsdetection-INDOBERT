@@ -1,0 +1,10 @@
+{
+  "id": "0a5339f4-e14",
+  "title": "Pemerintah mengumumkan kebijakan baru",
+  "text": "Pemerintah mengumumkan kebijakan baru",
+  "prediction": 0,
+  "prob_hoax": 0.05,
+  "model_version": "indobert-base",
+  "extracted_text": null,
+  "created_at": "2025-11-22T21:51:32.930772"
+}

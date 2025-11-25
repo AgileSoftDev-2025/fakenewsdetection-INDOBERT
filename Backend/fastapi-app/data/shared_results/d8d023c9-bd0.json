@@ -1,0 +1,10 @@
+{
+  "id": "d8d023c9-bd0",
+  "title": "Test berita untuk analisis",
+  "text": "Test berita untuk analisis",
+  "prediction": 0,
+  "prob_hoax": 0.05,
+  "model_version": "indobert-base",
+  "extracted_text": null,
+  "created_at": "2025-11-22T22:00:12.104967"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "4fbc855e-2f6",
+  "title": "kukukakaka",
+  "text": "kukukakaka",
+  "prediction": 1,
+  "prob_hoax": 0.95,
+  "model_version": "indobert-base",
+  "extracted_text": null,
+  "created_at": "2025-11-22T19:23:02.968057"
+}
