@@ -1,11 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './ListModelAI3.module.css';
 import { FaSignOutAlt } from 'react-icons/fa';
-
-interface Toast {
-  type: 'success' | 'error';
-  message: string;
-}
 
 interface Model {
   id: number;
@@ -15,31 +10,60 @@ interface Model {
   metrics: { accuracy: number; precision: number; recall: number; f1: number };
 }
 
+interface Toast {
+  type: 'success' | 'error';
+  message: string;
+}
+
 export default function ListModelAI() {
+  const [models, setModels] = useState<Model[]>([]);
   const [activeModel, setActiveModel] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
 
-  const models: Model[] = [
-    { id: 1, name: 'ML Model', version: 'v1.0', description: 'Stable release for production', metrics: { accuracy: 89, precision: 84, recall: 87, f1: 86 } },
-    { id: 2, name: 'ML Model', version: 'v2.0', description: 'Improved contextual accuracy and reduced bias', metrics: { accuracy: 91, precision: 90, recall: 88, f1: 89 } },
-    { id: 3, name: 'ML Model', version: 'v3.0', description: 'Added linguistic normalization features', metrics: { accuracy: 93, precision: 92, recall: 91, f1: 92 } },
-    { id: 4, name: 'ML Model', version: 'v4.0', description: 'Enhanced IndoBERT fine-tuning for better generalization', metrics: { accuracy: 95, precision: 94, recall: 93, f1: 94 } },
-  ];
+  // === GET MODELS FROM BACKEND ===
+  useEffect(() => {
+    fetch("http://localhost:8000/api/models")
+      .then((res) => res.json())
+      .then((data) => setModels(data))
+      .catch(() => console.error("Failed to load models"));
+  }, []);
 
-  const handleToggleModel = (model: Model) => {
-    if (activeModel === model.version) {
-      setActiveModel(null);
-      setToast({ type: 'success', message: `Model ${model.version} deactivated` });
-    } else {
-      setActiveModel(model.version);
-      setToast({ type: 'success', message: `Model changed to ${model.version}` });
+  // === GET ACTIVE MODEL ===
+  useEffect(() => {
+    fetch("http://localhost:8000/api/models/active")
+      .then((res) => res.json())
+      .then((data) => setActiveModel(data.active_model))
+      .catch(() => console.error("Failed to get active model"));
+  }, []);
+
+  // === ACTIVATE / DEACTIVATE MODEL ===
+  const handleToggle = async (model: Model) => {
+    try {
+      if (activeModel === model.version) {
+        // DEACTIVATE
+        await fetch("http://localhost:8000/api/models/deactivate", {
+          method: "POST",
+        });
+        setActiveModel(null);
+        setToast({ type: "success", message: `Model ${model.version} deactivated` });
+      } else {
+        // ACTIVATE
+        await fetch(`http://localhost:8000/api/models/${model.version}/activate`, {
+          method: "POST",
+        });
+        setActiveModel(model.version);
+        setToast({ type: "success", message: `Model changed to ${model.version}` });
+      }
+
+      setTimeout(() => setToast(null), 4000);
+    } catch (error) {
+      setToast({ type: "error", message: "Failed to communicate with server" });
     }
-    setTimeout(() => setToast(null), 5000);
   };
 
   return (
     <div className={styles.container}>
-      {/* === Header === */}
+      {/* === HEADER === */}
       <header className={styles.header}>
         <h1 className={styles.headerTitle}>FakeNewsDetector Admin</h1>
         <div className={styles.headerActions}>
@@ -50,31 +74,36 @@ export default function ListModelAI() {
         </div>
       </header>
 
-      {/* === Toast Feedback === */}
+      {/* === TOAST === */}
       {toast && (
         <div
           data-testid="toast"
-          className={`${styles.toast} ${toast.type === 'success' ? styles.success : styles.error}`}
+          className={`${styles.toast} ${
+            toast.type === 'success' ? styles.success : styles.error
+          }`}
         >
           {toast.message}
         </div>
       )}
 
-      {/* === Title === */}
+      {/* === PAGE TITLE === */}
       <h2 className={styles.sectionTitle}>Pilih Model</h2>
 
-      {/* === Model Cards === */}
+      {/* === MODEL CARDS === */}
       <div className={styles.cardGrid} data-testid="model-grid">
         {models.map((model) => (
           <div
             key={model.id}
             data-testid={`model-card-${model.version}`}
-            className={`${styles.card} card ${activeModel === model.version ? styles.activeCard : ''}`}
-            onClick={() => handleToggleModel(model)}
+            className={`${styles.card} card ${
+              activeModel === model.version ? styles.activeCard : ''
+            }`}
+            onClick={() => handleToggle(model)}
           >
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>{model.name}</h3>
               <p className={styles.modelVersion}>{model.version}</p>
+
               {activeModel === model.version && (
                 <span className={styles.activeBadge} data-testid="active-badge">
                   Aktif
@@ -84,6 +113,7 @@ export default function ListModelAI() {
 
             <p className={styles.cardDescription}>{model.description}</p>
 
+            {/* METRICS */}
             <div className={styles.metrics}>
               {[
                 { label: 'Akurasi', value: model.metrics.accuracy },
@@ -101,24 +131,26 @@ export default function ListModelAI() {
               ))}
             </div>
 
-            {/* Buttons inside card */}
+            {/* BUTTON */}
             <button
               className={`${styles.toggleButton} ${
-                activeModel === model.version ? styles.deactivateButton : styles.activateButton
+                activeModel === model.version
+                  ? styles.deactivateButton
+                  : styles.activateButton
               }`}
               data-testid={`toggle-btn-${model.version}`}
               onClick={(e) => {
                 e.stopPropagation();
-                handleToggleModel(model);
+                handleToggle(model);
               }}
             >
-              {activeModel === model.version ? 'Nonaktifkan' : 'Aktifkan'}
+              {activeModel === model.version ? "Nonaktifkan" : "Aktifkan"}
             </button>
           </div>
         ))}
       </div>
 
-      {/* === Footer === */}
+      {/* === FOOTER === */}
       <div className={styles.footer}>
         <button
           className={styles.saveButton}
