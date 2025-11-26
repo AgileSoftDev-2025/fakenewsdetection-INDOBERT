@@ -48,6 +48,7 @@ if os.getenv("FRONTEND_URL"):
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
@@ -101,5 +102,9 @@ def ensure_model_available():
             use_auth_token=token,
         )
         logger.info("Model snapshot downloaded to %s", dest_dir)
+    except (
+        Exception
+    ) as exc:  # pragma: no cover - surface the error but do not crash the app
+        logger.exception("Failed to download model snapshot from Hugging Face: %s", exc)
     except Exception as exc:
         logger.exception("Failed to download model snapshot from Hugging Face: %s", exc)
