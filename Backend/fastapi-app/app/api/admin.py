@@ -3,16 +3,38 @@ from __future__ import annotations
 import csv
 import os
 from pathlib import Path
+from typing import List, Dict, Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from src.services.model_registry import get_current_version  # type: ignore
+from src.services.model_registry import (
+    get_current_version,
+    _read_registry,
+    _write_registry,
+)  # type: ignore
 
 router = APIRouter()
 
 
 class VersionResponse(BaseModel):
+    version: str
+
+
+class ModelInfo(BaseModel):
+    id: int
+    name: str
+    description: str
+    version: str
+    metrics: Dict[str, float]
+
+
+class ActiveModelResponse(BaseModel):
+    active_model: str
+    metrics: Dict[str, float]
+
+
+class ActivateModelRequest(BaseModel):
     version: str
 
 
@@ -31,6 +53,163 @@ async def model_version() -> VersionResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Registry error: {e}")
     return VersionResponse(version=ver)
+
+
+@router.get("/api/models", response_model=List[ModelInfo])
+async def get_models() -> List[ModelInfo]:
+    """Get all available models with their metrics"""
+    try:
+        registry = _read_registry()
+        history = registry.get("history", [])
+
+        models = []
+
+        # Add current/base model (v1)
+        models.append(
+            ModelInfo(
+                id=1,
+                name="IndoBERT Base Model",
+                description="Model dasar IndoBERT untuk deteksi berita hoax",
+                version="v1",
+                metrics={
+                    "accuracy": 95.0,
+                    "precision": 94.0,
+                    "recall": 96.0,
+                    "f1": 95.0,
+                },
+            )
+        )
+
+        # Add models from history
+        for idx, entry in enumerate(history, start=2):
+            version = entry.get("version", f"v{idx}")
+            metrics_data = entry.get("metrics", {})
+
+            # Extract metrics with defaults
+            metrics = {
+                "accuracy": round(metrics_data.get("accuracy", 0.0) * 100, 1)
+                if metrics_data.get("accuracy", 0) <= 1
+                else round(metrics_data.get("accuracy", 0.0), 1),
+                "precision": round(metrics_data.get("precision", 0.0) * 100, 1)
+                if metrics_data.get("precision", 0) <= 1
+                else round(metrics_data.get("precision", 0.0), 1),
+                "recall": round(metrics_data.get("recall", 0.0) * 100, 1)
+                if metrics_data.get("recall", 0) <= 1
+                else round(metrics_data.get("recall", 0.0), 1),
+                "f1": round(metrics_data.get("f1", 0.0) * 100, 1)
+                if metrics_data.get("f1", 0) <= 1
+                else round(metrics_data.get("f1", 0.0), 1),
+            }
+
+            models.append(
+                ModelInfo(
+                    id=idx,
+                    name=f"IndoBERT {version}",
+                    description=f"Model retrained dengan {entry.get('feedback_rows_used', 0)} feedback",
+                    version=version,
+                    metrics=metrics,
+                )
+            )
+
+        return models
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading models: {str(e)}")
+
+
+@router.get("/api/models/active", response_model=ActiveModelResponse)
+async def get_active_model() -> ActiveModelResponse:
+    """Get currently active model version with metrics"""
+    try:
+        registry = _read_registry()
+        current = registry.get("current_version", "v1")
+
+        # Get metrics for current model
+        metrics = {
+            "accuracy": 95.0,
+            "precision": 94.0,
+            "recall": 96.0,
+            "f1": 95.0,
+        }
+
+        # If not v1, get metrics from history
+        if current != "v1":
+            history = registry.get("history", [])
+            for entry in history:
+                if entry.get("version") == current:
+                    metrics_data = entry.get("metrics", {})
+                    metrics = {
+                        "accuracy": round(metrics_data.get("accuracy", 0.0) * 100, 1)
+                        if metrics_data.get("accuracy", 0) <= 1
+                        else round(metrics_data.get("accuracy", 0.0), 1),
+                        "precision": round(metrics_data.get("precision", 0.0) * 100, 1)
+                        if metrics_data.get("precision", 0) <= 1
+                        else round(metrics_data.get("precision", 0.0), 1),
+                        "recall": round(metrics_data.get("recall", 0.0) * 100, 1)
+                        if metrics_data.get("recall", 0) <= 1
+                        else round(metrics_data.get("recall", 0.0), 1),
+                        "f1": round(metrics_data.get("f1", 0.0) * 100, 1)
+                        if metrics_data.get("f1", 0) <= 1
+                        else round(metrics_data.get("f1", 0.0), 1),
+                    }
+                    break
+
+        return ActiveModelResponse(active_model=current, metrics=metrics)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error getting active model: {str(e)}"
+        )
+
+
+@router.post("/api/models/{version}/activate")
+async def activate_model(version: str) -> Dict[str, Any]:
+    """Activate a specific model version"""
+    try:
+        registry = _read_registry()
+
+        # Validate version exists
+        if version == "v1":
+            # v1 is always valid (base model)
+            pass
+        else:
+            history = registry.get("history", [])
+            versions = [entry.get("version") for entry in history]
+            if version not in versions:
+                raise HTTPException(
+                    status_code=404, detail=f"Model version {version} not found"
+                )
+
+        # Update current version
+        registry["current_version"] = version
+        _write_registry(registry)
+
+        return {
+            "success": True,
+            "active_model": version,
+            "message": f"Model {version} activated",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error activating model: {str(e)}")
+
+
+@router.post("/api/models/deactivate")
+async def deactivate_model() -> Dict[str, Any]:
+    """Deactivate current model (set to v1 as default)"""
+    try:
+        registry = _read_registry()
+        registry["current_version"] = "v1"
+        _write_registry(registry)
+
+        return {
+            "success": True,
+            "active_model": "v1",
+            "message": "Model deactivated, using v1",
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error deactivating model: {str(e)}"
+        )
 
 
 @router.get("/admin/stats", response_model=StatsResponse)

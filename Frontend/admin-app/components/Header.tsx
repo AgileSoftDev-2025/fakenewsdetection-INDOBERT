@@ -14,31 +14,6 @@ export default function Header() {
             <p className="text-xs text-gray-600">Panel Administrasi</p>
           </div>
         </div>
-
-        {/* Navigation Menu */}
-        <nav className="flex items-center gap-8">
-          <Link 
-            href="#" 
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
-          >
-            <span>📊</span>
-            <span>Dataset</span>
-          </Link>
-          <Link 
-            href="#" 
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
-          >
-            <span>📈</span>
-            <span>Analytics</span>
-          </Link>
-          <Link 
-            href="#" 
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
-          >
-            <span>⚙️</span>
-            <span>Pengaturan</span>
-          </Link>
-        </nav>
       </div>
     </header>
   );

@@ -89,3 +89,6 @@ id,timestamp,model_name,model_version,text_length,prediction,prob_hoax,confidenc
 87,1764123641,indobert,v1,16,1,0.9999876022338867,0.9999876022338867,,unknown,BBM Mahal Bahlil
 88,1764123920,indobert,v1,16,1,0.9999876022338867,0.9999876022338867,,unknown,BBM Mahal Bahlil
 89,1764124464,indobert,v1,22,1,0.9999877214431763,0.9999877214431763,,unknown,Banjir Jakarta Kemaren
+90,1764128667,indobert,v1,16,1,0.9999876022338867,0.9999876022338867,,unknown,BBM Mahal Bahlil
+91,1764128803,indobert,v1,36,1,0.999984860420227,0.999984860420227,,unknown,BBM Naik\n\nBBM naik bikin risah warga
+92,1764137809,indobert,v1,86,1,0.9999833106994629,0.9999833106994629,,unknown,Banjir Thailand Terbaru\n\nBanjir Thailand mengganggu aktivitas warga sekitar di bangkok

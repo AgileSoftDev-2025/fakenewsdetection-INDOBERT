@@ -24,6 +24,7 @@ export default function HasilAnalisisPage() {
   const [relatedNews, setRelatedNews] = useState<RelatedNewsItem[]>([]);
   const [sharing, setSharing] = useState(false);
   const [loadingPdf, setLoadingPdf] = useState(false);
+  const [modelVersion, setModelVersion] = useState<string>('v1');
 
   const resultRaw = searchParams.get('result') || '';
   const isValid = ["valid", "true", "1"].includes(resultRaw.toLowerCase());
@@ -37,6 +38,15 @@ export default function HasilAnalisisPage() {
 
   const contentLabel = type === "file" ? filename || "—" : title || "—";
   const typeLabel = type ? (type === "file" ? "File" : "Teks") : "—";
+
+  // Fetch model version
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+    fetch(`${apiUrl}/model/version`)
+      .then(res => res.json())
+      .then(data => setModelVersion(data.version))
+      .catch(() => console.error('Failed to fetch model version'));
+  }, []);
 
   // Fetch related news on component mount
   useEffect(() => {
@@ -98,7 +108,7 @@ export default function HasilAnalisisPage() {
           title: title || "Tanpa Judul",
           content: snippet || contentLabel,
           prediction: isValid ? "VALID (Fakta)" : "HOAX (Palsu)",
-          confidence: isValid ? "95%" : "92%", // Tambahkan field confidence
+          confidence: isValid ? "95%" : "92%", // Tambahkan field confidence //Fetch Confidence
           date: analyzedAt
         }),
       });
@@ -140,7 +150,7 @@ export default function HasilAnalisisPage() {
             text: snippet || contentLabel,
             prediction: isValid ? 0 : 1,
             prob_hoax: isValid ? 0.05 : 0.95,
-            model_version: "indobert-base",
+            model_version: modelVersion,
             extracted_text: null
         })
       });
@@ -245,6 +255,12 @@ export default function HasilAnalisisPage() {
             <div className="text-slate-800">{typeLabel}</div>
             <div className="text-slate-500">Waktu Analisis:</div>
             <div className="text-slate-800">{analyzedAt}</div>
+            <div className="text-slate-500">Model AI:</div>
+            <div className="text-slate-800">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-semibold">
+                🧠 {modelVersion}
+              </span>
+            </div>
             <div className="text-slate-500">Konten:</div>
             <div className="text-slate-800 truncate">{contentLabel}</div>
             {snippet && (
