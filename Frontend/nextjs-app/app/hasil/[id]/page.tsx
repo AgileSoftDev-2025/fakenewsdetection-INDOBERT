@@ -52,196 +52,97 @@ export default async function HasilPublikPage({
 
   // Parse data dari backend
   const isValid = data.prediction === 0;
-  const analyzedAt = new Date(data.created_at || Date.now()).toLocaleString("id-ID", {
-    dateStyle: 'long',
-    timeStyle: 'short'
-  });
+  const analyzedAt = new Date(data.created_at || Date.now()).toLocaleString();
+
+  // Mapping data dari backend ke format yang dipakai di UI
+  const type = ""; // Gak ada info type dari backend
+  const filename = "";
+  const title = data.title || "";
+  const snippet = data.text || data.extracted_text || "";
+  const contentLabel = title || snippet || "—";
+  const typeLabel = "—";
 
   const banner = isValid
     ? {
         bg: "bg-green-100/70",
         iconStroke: "stroke-green-700",
-        heading: "✅ Berita Valid",
-        desc: "Berdasarkan analisis AI, berita ini kemungkinan besar valid dan dapat dipercaya.",
+        heading: "Berita Valid",
+        desc: "Berdasarkan analisis, berita ini kemungkinan besar valid dan dapat dipercaya.",
       }
     : {
         bg: "bg-red-100/70",
         iconStroke: "stroke-red-700",
-        heading: "⚠️ Kemungkinan Hoax",
-        desc: "Berdasarkan analisis AI, berita ini kemungkinan besar tidak akurat atau menyesatkan.",
+        heading: "Kemungkinan Hoax",
+        desc: "Berdasarkan analisis, berita ini kemungkinan besar tidak akurat atau menyesatkan.",
       };
 
   return (
     <div className="container py-6">
-      {/* Header Info */}
-      <div className="mb-4 text-center">
-        <p className="text-xs text-slate-500">Hasil Analisis Berita</p>
-        <p className="text-sm text-slate-600">Dibagikan pada: {analyzedAt}</p>
-      </div>
-
-      {/* Banner Hasil */}
+      {/* Banner - SAMA PERSIS */}
       <div className={`card p-12 ${banner.bg} flex flex-col items-center text-center mb-6`}>
+        {/* Icon */}
         {isValid ? (
-          <svg xmlns="http://www.w3.org/2000/svg" className={`h-20 w-20 ${banner.iconStroke}`} viewBox="0 0 24 24" fill="none" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M8 12l3 3 5-6" strokeLinecap="round" strokeLinejoin="round" />
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 ${banner.iconStroke}`} viewBox="0 0 24 24" fill="none" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="9" className={banner.iconStroke}></circle>
+            <path d="M8 12l3 3 5-6" className={banner.iconStroke} strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" className={`h-20 w-20 ${banner.iconStroke}`} viewBox="0 0 24 24" fill="none" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M9 9l6 6M15 9l-6 6" strokeLinecap="round" strokeLinejoin="round" />
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 ${banner.iconStroke}`} viewBox="0 0 24 24" fill="none" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="9" className={banner.iconStroke}></circle>
+            <path d="M9 9l6 6M15 9l-6 6" className={banner.iconStroke} strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
-        <h1 className="mt-4 text-2xl font-bold text-slate-900">{banner.heading}</h1>
-        <p className="mt-2 max-w-2xl text-base text-slate-700">{banner.desc}</p>
+        <h2 className="mt-4 text-xl font-semibold text-slate-900">{banner.heading}</h2>
+        <p className="mt-2 max-w-2xl text-sm text-slate-700">{banner.desc}</p>
       </div>
 
-      {/* Detail Analisis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Info Detail */}
-        <div className="card p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="text-3xl">📊</div>
+      {/* Content grid - SAMA PERSIS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Detail Input */}
+        <div className="card p-5">
+          <div className="mb-2 flex items-center gap-2 text-slate-700">
+            <span>⬆️</span>
             <div>
-              <div className="text-base font-semibold text-slate-800">Detail Analisis</div>
-              <div className="text-xs text-slate-500">Informasi hasil pengecekan</div>
+              <div className="text-sm font-semibold">Detail Input</div>
+              <div className="text-xs text-slate-500">Analisis dilakukan pada dokumen yang diupload</div>
             </div>
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm border-b border-slate-200 pb-2">
-              <span className="text-slate-600">Status:</span>
-              <span className={`font-semibold ${isValid ? 'text-green-700' : 'text-red-700'}`}>
-                {isValid ? 'Valid' : 'Hoax'}
-              </span>
-            </div>
-            
-            <div className="flex justify-between text-sm border-b border-slate-200 pb-2">
-              <span className="text-slate-600">Probabilitas Hoax:</span>
-              <span className="font-semibold text-slate-800">
-                {(data.prob_hoax * 100).toFixed(1)}%
-              </span>
-            </div>
-            
-            <div className="flex justify-between text-sm border-b border-slate-200 pb-2">
-              <span className="text-slate-600">Model AI:</span>
-              <span className="font-medium text-slate-800">{data.model_version || 'indobert-base'}</span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-600">Waktu Analisis:</span>
-              <span className="font-medium text-slate-800">{analyzedAt}</span>
-            </div>
+          <div className="mt-4 grid grid-cols-2 gap-y-3 text-sm">
+            <div className="text-slate-500">Tipe Input:</div>
+            <div className="text-slate-800">{typeLabel}</div>
+            <div className="text-slate-500">Waktu Analisis:</div>
+            <div className="text-slate-800">{analyzedAt}</div>
+            <div className="text-slate-500">Konten:</div>
+            <div className="text-slate-800 truncate">{contentLabel}</div>
+            {snippet && (
+              <>
+                <div className="text-slate-500">Cuplikan:</div>
+                <div className="text-slate-800">{snippet}</div>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Konten yang Dianalisis */}
-        <div className="card p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="text-3xl">📝</div>
-            <div>
-              <div className="text-base font-semibold text-slate-800">Konten yang Dianalisis</div>
-              <div className="text-xs text-slate-500">Teks yang diperiksa oleh AI</div>
-            </div>
-          </div>
-          
-          {data.title && (
-            <div className="mb-3">
-              <div className="text-xs font-semibold text-slate-600 mb-1">Judul:</div>
-              <div className="text-sm text-slate-800 font-medium">{data.title}</div>
-            </div>
-          )}
-          
-          <div>
-            <div className="text-xs font-semibold text-slate-600 mb-1">Isi Berita:</div>
-            <div className="text-sm text-slate-700 leading-relaxed max-h-40 overflow-y-auto p-3 bg-slate-50 rounded border border-slate-200">
-              {data.text || data.extracted_text || 'Tidak ada teks yang tersedia'}
-            </div>
-          </div>
+        {/* Rekomendasi */}
+        <div className="card p-5">
+          <div className="mb-2 text-sm font-semibold text-slate-700">Rekomendasi</div>
+          <div className="text-xs text-slate-500 mb-3">Beberapa referensi dari berita asli yang serupa</div>
+          <ul className="list-disc list-inside text-sm text-slate-800 space-y-1">
+            <li><a className="hover:underline" href="#">Berita 1 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 2 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 3 Link</a></li>
+            <li><a className="hover:underline" href="#">Berita 4 Link</a></li>
+          </ul>
         </div>
       </div>
 
-      {/* Rekomendasi Verifikasi */}
-      <div className="card p-6 mb-6">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="text-3xl">🔍</div>
-          <div>
-            <div className="text-base font-semibold text-slate-800">Verifikasi Lebih Lanjut</div>
-            <div className="text-xs text-slate-500">Selalu cek dari berbagai sumber terpercaya</div>
-          </div>
-        </div>
+      {/* Tindakan Selanjutnya - SAMA PERSIS (tanpa tombol Simpan & Bagikan) */}
+      <div className="card p-5 mt-6">
+        <div className="text-sm font-semibold text-slate-700">Tindakan Selanjutnya</div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <a 
-            href="https://turnbackhoax.id" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors"
-          >
-            <span className="text-2xl">🛡️</span>
-            <div>
-              <div className="text-sm font-semibold text-slate-800">TurnBackHoax</div>
-              <div className="text-xs text-slate-600">Cek fakta berita hoax</div>
-            </div>
-          </a>
-          
-          <a 
-            href="https://cekfakta.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors"
-          >
-            <span className="text-2xl">✅</span>
-            <div>
-              <div className="text-sm font-semibold text-slate-800">CekFakta</div>
-              <div className="text-xs text-slate-600">Verifikasi informasi</div>
-            </div>
-          </a>
-          
-          <a 
-            href="https://www.liputan6.com/cek-fakta" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors"
-          >
-            <span className="text-2xl">📰</span>
-            <div>
-              <div className="text-sm font-semibold text-slate-800">Liputan6 Cek Fakta</div>
-              <div className="text-xs text-slate-600">Media fact-checking</div>
-            </div>
-          </a>
-          
-          <a 
-            href="https://www.kominfo.go.id/content/all/laporan_isu_hoaks" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors"
-          >
-            <span className="text-2xl">🏛️</span>
-            <div>
-              <div className="text-sm font-semibold text-slate-800">Kominfo</div>
-              <div className="text-xs text-slate-600">Laporan hoaks resmi</div>
-            </div>
-          </a>
+        <div className="mt-4 flex flex-wrap gap-3 items-center">
+          <Link href="/" className="btn ml-auto">Cek Berita Baru</Link>
         </div>
-      </div>
-
-      {/* CTA */}
-      <div className="card p-8 bg-gradient-to-r from-blue-50 to-indigo-50 text-center">
-        <div className="text-4xl mb-3">🤖</div>
-        <h3 className="text-lg font-bold text-slate-800 mb-2">Cek Berita Anda Sendiri</h3>
-        <p className="text-sm text-slate-600 mb-5 max-w-md mx-auto">
-          Gunakan teknologi AI untuk memverifikasi keaslian berita dan lindungi diri dari hoaks
-        </p>
-        <Link href="/" className="btn inline-block">
-          🚀 Mulai Cek Berita Sekarang
-        </Link>
-      </div>
-
-      {/* Footer Disclaimer */}
-      <div className="mt-6 text-center text-xs text-slate-500 p-4 bg-slate-50 rounded-lg">
-        <p>⚠️ Hasil analisis ini dibuat oleh AI dan bersifat prediktif.</p>
-        <p className="mt-1">Selalu verifikasi informasi dari berbagai sumber terpercaya sebelum menyebarkan.</p>
       </div>
     </div>
   );

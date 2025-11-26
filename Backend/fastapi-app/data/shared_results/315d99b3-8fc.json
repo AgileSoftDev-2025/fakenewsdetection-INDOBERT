@@ -1,0 +1,10 @@
+{
+  "id": "315d99b3-8fc",
+  "title": "BBM Mahal",
+  "text": "BBM Mahal",
+  "prediction": 1,
+  "prob_hoax": 0.95,
+  "model_version": "indobert-base",
+  "extracted_text": null,
+  "created_at": "2025-11-25T22:25:17.898833"
+}
