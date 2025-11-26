@@ -86,3 +86,6 @@ id,timestamp,model_name,model_version,text_length,prediction,prob_hoax,confidenc
 84,1764084234,indobert,v1,58,1,0.999987006187439,0.999987006187439,,unknown,BBM Mahal\n\nBBM langka pada SPBU Swasta adalah salah bahlil
 85,1764089786,indobert,v1,30,1,0.9999865293502808,0.9999865293502808,,unknown,Banjir Bandang\n\nBanjir Bandang
 86,1764089814,indobert,v1,24,1,0.9999860525131226,0.9999860525131226,,unknown,BBM\n\nBBM Mahal Pertamina
+87,1764123641,indobert,v1,16,1,0.9999876022338867,0.9999876022338867,,unknown,BBM Mahal Bahlil
+88,1764123920,indobert,v1,16,1,0.9999876022338867,0.9999876022338867,,unknown,BBM Mahal Bahlil
+89,1764124464,indobert,v1,22,1,0.9999877214431763,0.9999877214431763,,unknown,Banjir Jakarta Kemaren

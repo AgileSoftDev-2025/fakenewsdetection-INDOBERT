@@ -10,8 +10,9 @@ export default async function HasilPublikPage({
   let error = false;
 
   try {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/results/${params.id}`,
+      `${apiBaseUrl}/results/${params.id}`,
       { 
         cache: 'no-store',
         headers: {
