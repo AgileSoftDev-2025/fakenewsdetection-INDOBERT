@@ -64,6 +64,7 @@ app.include_router(predict_router.router, prefix="")
 app.include_router(feedback_router.router, prefix="")
 app.include_router(admin_router.router, prefix="")
 app.include_router(results_router.router, prefix="")
+app.include_router(related_router.router, prefix="")
 
 
 @app.get("/health")
