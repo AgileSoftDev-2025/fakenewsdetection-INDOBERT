@@ -59,18 +59,37 @@ from .api import predict as predict_router
 from .api import feedback as feedback_router
 from .api import admin as admin_router
 from .api import results as results_router
+from .api import retrain as retrain_router
 
 app.include_router(predict_router.router, prefix="")
 app.include_router(feedback_router.router, prefix="")
 app.include_router(admin_router.router, prefix="")
 app.include_router(results_router.router, prefix="")
 app.include_router(related_router.router, prefix="")
+app.include_router(retrain_router.router, prefix="")
 
 
 @app.get("/health")
 async def health():
     logger.info("Health check endpoint hit")  # ← TAMBAHKAN LOG
     return {"status": "ok"}
+
+
+@app.get("/health/hf-space")
+async def check_hf_space():
+    """Health check for HuggingFace Space integration"""
+    try:
+        from .services.hf_space_service import HFSpaceService
+
+        health = HFSpaceService.check_space_health()
+        return {
+            "hf_space_enabled": os.getenv("ENABLE_HF_SPACE", "true"),
+            "hf_space_url": os.getenv("HF_SPACE_URL"),
+            "health": health,
+        }
+    except Exception as e:
+        logger.exception(f"HF Space health check failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.on_event("startup")

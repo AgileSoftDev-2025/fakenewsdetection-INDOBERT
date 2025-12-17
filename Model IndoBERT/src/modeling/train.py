@@ -123,6 +123,41 @@ def train_indobert(
         TrainingArguments,
     )
 
+    # Detect and configure device (DirectML > CUDA > CPU)
+    device = "cpu"
+    device_name = "CPU"
+    use_directml = False
+
+    # Try DirectML first (for newer GPUs like RTX 5070Ti on Windows)
+    try:
+        import torch_directml
+
+        if torch_directml.is_available():
+            device = torch_directml.device()
+            device_name = f"DirectML GPU ({device})"
+            use_directml = True
+            print(f"✓ DirectML GPU detected: {device}")
+            print("  - Using DirectML for training (optimized for Windows)")
+    except ImportError:
+        pass
+
+    # Fallback to CUDA if DirectML not available
+    if not use_directml and torch.cuda.is_available():
+        device = "cuda"
+        device_name = f"CUDA GPU ({torch.cuda.get_device_name(0)})"
+        print(f"✓ CUDA GPU detected: {torch.cuda.get_device_name(0)}")
+        print(f"  - CUDA version: {torch.version.cuda}")
+        print(
+            f"  - GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB"
+        )
+    elif not use_directml:
+        print("⚠ No GPU detected, using CPU (training will be slower)")
+        print("  To enable GPU:")
+        print("    - For NVIDIA: Install CUDA and PyTorch with CUDA support")
+        print("    - For Windows (any GPU): pip install torch-directml")
+
+    print(f"Training device: {device_name}\n")
+
     model_name = SETTINGS.indobert_checkpoint
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -150,35 +185,57 @@ def train_indobert(
     test_ds = TextDataset(test_df)
 
     model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
+
+    # Move model to DirectML device if available
+    if use_directml:
+        model = model.to(device)
+        print(f"Model moved to DirectML device\n")
+
     collator = DataCollatorWithPadding(tokenizer)
 
-    # Mixed precision selection (CUDA only)
+    # Mixed precision selection (CUDA GPU only, DirectML handles this automatically)
     use_fp16 = False
     use_bf16 = False
-    if torch.cuda.is_available():
+
+    if torch.cuda.is_available() and not use_directml:
         try:
+            # BF16 is better if supported (Ampere GPUs and newer)
             if (
                 hasattr(torch.cuda, "is_bf16_supported")
                 and torch.cuda.is_bf16_supported()
             ):
                 use_bf16 = True
+                print("✓ Using BF16 mixed precision (better numerical stability)")
             else:
                 use_fp16 = True
-        except Exception:
-            use_fp16 = True
+                print("✓ Using FP16 mixed precision (faster training)")
+        except Exception as e:
+            print(f"⚠ Mixed precision setup failed: {e}")
+            print("  Falling back to FP32")
+    else:
+        print("ℹ Using FP32 on CPU (mixed precision requires GPU)")
+
+    # Adjust batch size for CPU if needed
+    actual_batch_size = params.batch_size
+    if device == "cpu" and params.batch_size > 8:
+        actual_batch_size = 8
+        print(
+            f"⚠ Reducing batch size from {params.batch_size} to {actual_batch_size} for CPU training"
+        )
 
     training_args = TrainingArguments(
         output_dir=SETTINGS.indobert_model_dir,
         overwrite_output_dir=True,
         learning_rate=params.lr,
-        per_device_train_batch_size=params.batch_size,
-        per_device_eval_batch_size=params.batch_size,
+        per_device_train_batch_size=actual_batch_size,
+        per_device_eval_batch_size=actual_batch_size,
         num_train_epochs=params.epochs,
         logging_steps=50,
         seed=SETTINGS.random_seed,
         report_to=[],
         fp16=use_fp16,
         bf16=use_bf16,
+        no_cuda=(device == "cpu"),  # Explicitly disable CUDA if not available
     )
 
     def hf_compute_metrics(eval_pred):

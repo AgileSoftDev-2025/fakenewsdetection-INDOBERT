@@ -1,0 +1,11 @@
+{
+  "is_running": false,
+  "progress": 100,
+  "stage": "failed",
+  "message": "Training failed: Training script failed: \nERROR: Missing dataset: C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\data\\raw\\Summarized_CNN.csv\nTraceback (most recent call last):\n  File \"C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\src\\modeling\\auto_retrain.py\", line 111, in <module>\n    result = main()\n  File \"C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\src\\modeling\\auto_retrain.py\", line 68, in main\n    paths = build_and_save_splits()\n  File \"C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\src\\dataset.py\", line 73, in build_and_save_splits\n    data = load_and_merge()\n  File \"C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\src\\dataset.py\", line 35, in load_and_merge\n    raise FileNotFoundError(f\"Missing dataset: {path}\")\nFileNotFoundError: Missing dataset: C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\data\\raw\\Summarized_CNN.csv\n",
+  "started_at": 1765985952.7136965,
+  "estimated_completion": 1766021952.7136989,
+  "current_epoch": 0,
+  "total_epochs": 3,
+  "error": "Training script failed: \nERROR: Missing dataset: C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\data\\raw\\Summarized_CNN.csv\nTraceback (most recent call last):\n  File \"C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\src\\modeling\\auto_retrain.py\", line 111, in <module>\n    result = main()\n  File \"C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\src\\modeling\\auto_retrain.py\", line 68, in main\n    paths = build_and_save_splits()\n  File \"C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\src\\dataset.py\", line 73, in build_and_save_splits\n    data = load_and_merge()\n  File \"C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\src\\dataset.py\", line 35, in load_and_merge\n    raise FileNotFoundError(f\"Missing dataset: {path}\")\nFileNotFoundError: Missing dataset: C:\\Users\\epeto\\.vscode\\fakenewsdetection-INDOBERT\\Model IndoBERT\\data\\raw\\Summarized_CNN.csv\n"
+}

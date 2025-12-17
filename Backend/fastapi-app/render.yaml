@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: fakenews-api
+    env: python
+    region: singapore
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: HF_MODEL_REPO
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: USE_DATABASE
+        value: "true"
+      - key: RETRAIN_THRESHOLD
+        value: "100"
+      - key: NEWS_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+    healthCheckPath: /health
+    autoDeploy: true

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 type RelatedNewsItem = {
@@ -19,7 +19,7 @@ function formatDate(input?: string) {
   }
 }
 
-export default function HasilAnalisisPage() {
+function HasilAnalisisContent() {
   const searchParams = useSearchParams();
   const [relatedNews, setRelatedNews] = useState<RelatedNewsItem[]>([]);
   const [sharing, setSharing] = useState(false);
@@ -350,3 +350,10 @@ export default function HasilAnalisisPage() {
   );
 }
 
+export default function HasilAnalisisPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <HasilAnalisisContent />
+    </Suspense>
+  );
+}

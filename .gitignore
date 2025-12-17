@@ -4,25 +4,118 @@ __pycache__/
 *.pyo
 *.pyd
 *.egg-info/
+*.egg
 .venv/
+venv/
+env/
 .env
+.env.*
+*.so
 
-# FastAPI backend venv & caches
+# FastAPI backend
 Backend/fastapi-app/.venv/
+Backend/fastapi-app/venv/
 Backend/fastapi-app/.env
+Backend/fastapi-app/.env.*
 Backend/fastapi-app/.hf_cache/
+Backend/fastapi-app/__pycache__/
 
 # Node / Next.js
+node_modules/
+.next/
+.turbo/
+out/
+dist/
+build/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# Frontend specific
 Frontend/nextjs-app/node_modules/
 Frontend/nextjs-app/.next/
 Frontend/nextjs-app/.env*
+Frontend/admin-app/node_modules/
+Frontend/admin-app/.next/
+Frontend/admin-app/.env*
+Frontend/bdd-testing/node_modules/
 
-# Model artifacts (kept in Hugging Face, not in Git)
+# Model artifacts (large files - use Hugging Face Hub instead)
 Model IndoBERT/models/indobert/**
+Model IndoBERT/models/indobert_versions/**
 Model IndoBERT/models/*.bin
 Model IndoBERT/models/*.pt
+Model IndoBERT/models/*.pth
 Model IndoBERT/models/*.safetensors
+Model IndoBERT/.conda/
+Model IndoBERT/data/raw/
+Model IndoBERT/data/processed/
+Model IndoBERT/data/interim/
+Model IndoBERT/data/external/
+Model IndoBERT/models/*.ckpt
+
+# Data files (too large for git)
+Model IndoBERT/data/raw/**/*.csv
+Model IndoBERT/data/processed/**/*.csv
+Model IndoBERT/data/external/**
+Model IndoBERT/data/feedback/*.csv
+Model IndoBERT/data/interim/**
+Model IndoBERT/data/shared_results/**
+Backend/fastapi-app/data/**/*.csv
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Training outputs
+Model IndoBERT/reports/figures/**
+Model IndoBERT/checkpoints/
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# BDD test outputs (folders deleted - not needed for deployment)
+tests/
+bdd-testing-berita/
+Frontend/bdd-testing/
+Frontend/TestFeature/
+Frontend/tests/
+
+# Unused folders
+UI/
+Tugas/
+huggingface-space/
+.hf_cache/
+
+# Backend unused files
+Backend/fastapi-app/data/
+Backend/fastapi-app/admin-app/
+Backend/fastapi-app/package.json
+Backend/fastapi-app/package-lock.json
+
+# Build outputs
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/# Temporary files
+*.tmp
+*.temp
+.cache/

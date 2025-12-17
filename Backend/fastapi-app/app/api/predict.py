@@ -5,12 +5,12 @@ from io import BytesIO
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks
 from pydantic import BaseModel
 
 # Import project functions
-from src.modeling.predict import predict_indobert  # type: ignore
 from src.services.model_registry import get_current_version  # type: ignore
+from ..services.hf_space_service import HFSpaceService
 
 router = APIRouter()
 
@@ -35,7 +35,9 @@ class PredictFileResponse(PredictResponse):
 
 
 @router.post("/predict", response_model=PredictResponse)
-async def predict(req: PredictRequest) -> PredictResponse:
+async def predict(
+    req: PredictRequest, background_tasks: BackgroundTasks
+) -> PredictResponse:
     # Build text from fields
     text = (req.text or "").strip()
     if not text:
@@ -45,24 +47,35 @@ async def predict(req: PredictRequest) -> PredictResponse:
     if not text:
         raise HTTPException(status_code=400, detail="Text/title/body is required")
 
+    # Call HuggingFace Space with fallback to local model
     try:
-        preds, probs = predict_indobert(
-            [text],
-            return_proba=True,
+        result = await HFSpaceService.predict_with_fallback(
+            text,
+            user_label=req.user_label,
             log_feedback=req.log_feedback,
-            user_labels=[req.user_label],
-        )  # type: ignore
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Model error: {e}")
 
-    model_version = get_current_version()
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=500, detail=result.get("error", "Unknown prediction error")
+        )
+
+    # Auto-check untuk retrain setelah prediksi
+    if req.log_feedback:
+        background_tasks.add_task(_check_and_trigger_retrain)
+
     return PredictResponse(
-        prediction=int(preds[0]), prob_hoax=float(probs[0]), model_version=model_version
+        prediction=int(result["prediction"]),
+        prob_hoax=float(result["prob_hoax"]),
+        model_version=result.get("model_version", get_current_version()),
     )
 
 
 @router.post("/predict-file", response_model=PredictFileResponse)
 async def predict_file(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="PNG/JPG gambar atau DOCX dokumen"),
     log_feedback: bool = True,
     user_label: Optional[int] = None,
@@ -142,20 +155,64 @@ async def predict_file(
     if not text:
         raise HTTPException(status_code=422, detail="Teks tidak terbaca dari file.")
 
+    # Use HF Space (with fallback) for the extracted text
     try:
-        preds, probs = predict_indobert(
-            [text],
-            return_proba=True,
+        result = await HFSpaceService.predict_with_fallback(
+            text,
+            user_label=user_label,
             log_feedback=log_feedback,
-            user_labels=[user_label],
-        )  # type: ignore
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Model error: {e}")
 
-    model_version = get_current_version()
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=500, detail=result.get("error", "Unknown prediction error")
+        )
+
+    # Auto-check untuk retrain setelah prediksi
+    if log_feedback:
+        background_tasks.add_task(_check_and_trigger_retrain)
+
     return PredictFileResponse(
-        prediction=int(preds[0]),
-        prob_hoax=float(probs[0]),
-        model_version=model_version,
+        prediction=int(result["prediction"]),
+        prob_hoax=float(result["prob_hoax"]),
+        model_version=result.get("model_version", get_current_version()),
         extracted_text=text,
     )
+
+
+def _check_and_trigger_retrain():
+    """Background task untuk cek dan trigger retrain jika perlu"""
+    try:
+        import sys
+        from pathlib import Path
+
+        # Add services to path
+        backend_path = Path(__file__).resolve().parents[1]
+        if str(backend_path) not in sys.path:
+            sys.path.insert(0, str(backend_path))
+
+        from services.retrain_service import RetrainService
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        should_retrain, new_feedback, message = RetrainService.should_retrain()
+
+        if should_retrain:
+            logger.info(f"🔄 Auto-retrain triggered: {message}")
+            result = RetrainService.execute_retrain()
+
+            if result["success"]:
+                logger.info(f"✅ Auto-retrain completed: {result['version']}")
+                logger.info(f"📊 Metrics: {result['metrics']}")
+            else:
+                logger.error(f"❌ Auto-retrain failed: {result.get('error')}")
+        else:
+            logger.debug(f"⏭️ Auto-retrain skipped: {message}")
+
+    except Exception as e:
+        import logging
+
+        logging.getLogger(__name__).exception(f"Error in auto-retrain check: {e}")
