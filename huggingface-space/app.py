@@ -24,6 +24,7 @@ class FakeNewsDetector:
         self.tokenizer = None
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model_version = "v1"  # Default version
         self.load_model()
 
     def load_model(self):
@@ -49,6 +50,21 @@ class FakeNewsDetector:
                     use_auth_token=hf_token,  # Backward compatibility
                 )
                 logger.info("✅ Model loaded dari HuggingFace Hub")
+                
+                # Try to get model version from config
+                try:
+                    if hasattr(self.model.config, 'model_version'):
+                        self.model_version = self.model.config.model_version
+                    elif hasattr(self.model.config, '_name_or_path'):
+                        # Extract version from path like "Davidbio/fakenewsdetection-indobert/v2"
+                        path = self.model.config._name_or_path
+                        if '/v' in path:
+                            self.model_version = path.split('/v')[-1].split('/')[0]
+                            if not self.model_version.startswith('v'):
+                                self.model_version = f"v{self.model_version}"
+                except Exception:
+                    pass  # Keep default v1
+                    
             except Exception as hub_error:
                 # Fallback ke lokal jika HF Hub gagal
                 if MODEL_DIR.exists() and any(MODEL_DIR.iterdir()):
@@ -64,6 +80,7 @@ class FakeNewsDetector:
             self.model.eval()
             self.model.to(self.device)
             logger.info(f"Model berhasil dimuat di {self.device}")
+            logger.info(f"Model version: {self.model_version}")
         except Exception as e:
             logger.error(f"Error loading model: {e}")
             raise
@@ -278,7 +295,7 @@ if __name__ == "__main__":
                 confidence=confidence,
                 probabilities=probs,
                 warning=warning,
-                model_version="from_hf_hub",
+                model_version=detector.model_version,  # Use actual version
             )
         except Exception as e:
             logger.exception(f"API predict error: {e}")
