@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Konfigurasi - Model dari HuggingFace Hub
-MODEL_REPO = "Davidbio/fakenewsdetection"  # Model yang sudah di-upload
+MODEL_REPO = "Davidbio/fakenewsdetection-indobert"  # Model yang sudah di-upload
 MODEL_DIR = Path(__file__).parent / "models" / "indobert"  # Fallback lokal
 
 
@@ -31,18 +31,32 @@ class FakeNewsDetector:
         try:
             # Load dari HuggingFace Hub (prioritas utama)
             hf_repo = os.environ.get("HF_MODEL_REPO", MODEL_REPO)
+            hf_token = os.environ.get("HF_TOKEN", None)  # Get token jika ada
+
             logger.info(f"Loading model dari HuggingFace Hub: {hf_repo}")
-            
+            if hf_token:
+                logger.info("Using HF_TOKEN for authentication")
+
             try:
-                self.tokenizer = AutoTokenizer.from_pretrained(hf_repo)
-                self.model = AutoModelForSequenceClassification.from_pretrained(hf_repo)
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    hf_repo,
+                    token=hf_token,
+                    use_auth_token=hf_token,  # Backward compatibility
+                )
+                self.model = AutoModelForSequenceClassification.from_pretrained(
+                    hf_repo,
+                    token=hf_token,
+                    use_auth_token=hf_token,  # Backward compatibility
+                )
                 logger.info("✅ Model loaded dari HuggingFace Hub")
             except Exception as hub_error:
                 # Fallback ke lokal jika HF Hub gagal
                 if MODEL_DIR.exists() and any(MODEL_DIR.iterdir()):
                     logger.warning(f"HF Hub failed, loading from local: {hub_error}")
                     self.tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
-                    self.model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
+                    self.model = AutoModelForSequenceClassification.from_pretrained(
+                        MODEL_DIR
+                    )
                     logger.info("✅ Model loaded dari lokal")
                 else:
                     raise hub_error
@@ -213,4 +227,70 @@ with gr.Blocks(title="IndoBERT Fake News Detection", theme=gr.themes.Soft()) as 
 
 # Launch app
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    # Create FastAPI app for API endpoints
+    import uvicorn
+    from fastapi import FastAPI, HTTPException
+    from fastapi.middleware.cors import CORSMiddleware
+    from pydantic import BaseModel
+
+    # Create FastAPI app
+    api_app = FastAPI(title="IndoBERT Fake News Detection API")
+
+    # CORS configuration
+    api_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # In production, specify your domain
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    class PredictRequest(BaseModel):
+        text: str
+
+    class PredictResponse(BaseModel):
+        prediction: int
+        prob_hoax: float
+        confidence: float
+        probabilities: dict
+        warning: str
+        model_version: str
+
+    @api_app.post("/api/predict", response_model=PredictResponse)
+    async def api_predict(request: PredictRequest):
+        """
+        API endpoint untuk prediksi dari website backend
+        """
+        try:
+            result_text, confidence, probs, warning = detector.predict(request.text)
+
+            # Extract prediction label
+            if "HOAX" in result_text:
+                prediction = 1
+                prob_hoax = probs["Fake News (Hoax)"]
+            else:
+                prediction = 0
+                prob_hoax = probs["Fake News (Hoax)"]
+
+            return PredictResponse(
+                prediction=prediction,
+                prob_hoax=prob_hoax,
+                confidence=confidence,
+                probabilities=probs,
+                warning=warning,
+                model_version="from_hf_hub",
+            )
+        except Exception as e:
+            logger.exception(f"API predict error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @api_app.get("/api/health")
+    async def health():
+        """Health check endpoint"""
+        return {"status": "ok", "model_loaded": detector.model is not None}
+
+    # Mount Gradio app to FastAPI using Gradio 6.0 method
+    app = gr.mount_gradio_app(api_app, demo, path="/")
+
+    # Launch with both API and Gradio UI
+    uvicorn.run(app, host="0.0.0.0", port=7860, log_level="info")
