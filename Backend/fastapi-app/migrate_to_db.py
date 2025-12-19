@@ -13,13 +13,7 @@ HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
 
 from app.database import Base, engine
-from app.models import (
-    DetectionResult,
-    UserFeedback,
-    ModelMetadata,
-    AdminUser,
-    ApiKey
-)
+from app.models import Feedback  # Import all models here
 
 def create_tables():
     """Create all tables defined in models.py"""
