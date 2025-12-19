@@ -10,13 +10,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Path untuk menyimpan progress state
-PROGRESS_FILE = (
-    Path(__file__).resolve().parents[4]
-    / "Model IndoBERT"
-    / "data"
-    / "retrain_progress.json"
-)
+# Path to progress file - handle both local and Railway environments
+try:
+    PROGRESS_FILE = (
+        Path(__file__).resolve().parents[4]
+        / "Model IndoBERT"
+        / "data"
+        / "retrain_progress.json"
+    )
+except (IndexError, ValueError):
+    # Railway/Docker - use temp directory
+    PROGRESS_FILE = Path("/tmp/retrain_progress.json")
 
 
 class RetrainProgress:

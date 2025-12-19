@@ -20,16 +20,28 @@ import httpx
 from .api import related as related_router
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)  # ← TAMBAHKAN INI
+logging.basicConfig(level=logging.INFO)
 
-# Ensure repo root on sys.path
+# Path setup - Railway vs Local environment
 HERE = Path(__file__).resolve()
-REPO_ROOT = HERE.parents[3]
-MODEL_DIR = REPO_ROOT / "Model IndoBERT"
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-if str(MODEL_DIR) not in sys.path:
-    sys.path.insert(0, str(MODEL_DIR))
+
+# Check if running in Railway/Docker (only Backend/fastapi-app deployed)
+# or local (full repo structure available)
+try:
+    # Try to get repo root (works locally)
+    REPO_ROOT = HERE.parents[3]
+    MODEL_DIR = REPO_ROOT / "Model IndoBERT"
+    
+    # Only add to path if directories exist (local environment)
+    if REPO_ROOT.exists() and str(REPO_ROOT) not in sys.path:
+        sys.path.insert(0, str(REPO_ROOT))
+    if MODEL_DIR.exists() and str(MODEL_DIR) not in sys.path:
+        sys.path.insert(0, str(MODEL_DIR))
+except (IndexError, ValueError):
+    # Running in Railway/Docker - Model IndoBERT not needed
+    # Backend only calls HF Space API for inference
+    logger.info("Running in production mode (Railway/Docker) - Model inference via HF Space API")
+    pass
 
 app = FastAPI(title="FakeNews Detection API", version="0.1.0")
 

@@ -15,14 +15,26 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Path setup
-REPO_ROOT = Path(__file__).resolve().parents[4]
-MODEL_DIR = REPO_ROOT / "Model IndoBERT"
-FEEDBACK_CSV = MODEL_DIR / "data" / "feedback" / "feedback.csv"
-REGISTRY_PATH = MODEL_DIR / "models" / "indobert_versions" / "registry.json"
-AUTO_RETRAIN_SCRIPT = MODEL_DIR / "src" / "modeling" / "auto_retrain.py"
-INDOBERT_MODEL_DIR = MODEL_DIR / "models" / "indobert"
-VERSIONS_DIR = MODEL_DIR / "models" / "indobert_versions"
+# Path setup - Only used when running locally with full repo
+# In Railway/production, retrain is disabled (no Model IndoBERT folder)
+try:
+    REPO_ROOT = Path(__file__).resolve().parents[4]
+    MODEL_DIR = REPO_ROOT / "Model IndoBERT"
+    FEEDBACK_CSV = MODEL_DIR / "data" / "feedback" / "feedback.csv"
+    REGISTRY_PATH = MODEL_DIR / "models" / "indobert_versions" / "registry.json"
+    AUTO_RETRAIN_SCRIPT = MODEL_DIR / "src" / "modeling" / "auto_retrain.py"
+    INDOBERT_MODEL_DIR = MODEL_DIR / "models" / "indobert"
+    VERSIONS_DIR = MODEL_DIR / "models" / "indobert_versions"
+except (IndexError, ValueError):
+    # Running in Railway/Docker - retrain disabled
+    logger.warning("Running in production mode - retrain functionality disabled")
+    REPO_ROOT = Path("/tmp")
+    MODEL_DIR = REPO_ROOT
+    FEEDBACK_CSV = MODEL_DIR / "feedback.csv"
+    REGISTRY_PATH = MODEL_DIR / "registry.json"
+    AUTO_RETRAIN_SCRIPT = MODEL_DIR / "auto_retrain.py"
+    INDOBERT_MODEL_DIR = MODEL_DIR / "indobert"
+    VERSIONS_DIR = MODEL_DIR / "versions"
 
 # Configuration
 DEFAULT_RETRAIN_THRESHOLD = int(os.getenv("RETRAIN_THRESHOLD", "100"))
