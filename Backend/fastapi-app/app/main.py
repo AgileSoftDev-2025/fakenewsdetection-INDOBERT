@@ -90,6 +90,12 @@ app.include_router(related_router.router, prefix="")
 app.include_router(retrain_router.router, prefix="")
 
 
+@app.get("/")
+async def root():
+    """Root endpoint - Railway health check"""
+    return {"status": "ok", "message": "FakeNews Detection API is running"}
+
+
 @app.get("/health")
 async def health():
     logger.info("Health check endpoint hit")  # ← TAMBAHKAN LOG
