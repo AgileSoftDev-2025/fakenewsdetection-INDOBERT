@@ -9,7 +9,12 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks
 from pydantic import BaseModel
 
 # Import project functions
-from src.services.model_registry import get_current_version  # type: ignore
+# Use stub in Railway production (no Model IndoBERT folder available)
+try:
+    from src.services.model_registry import get_current_version  # type: ignore
+except ModuleNotFoundError:
+    from ..services.model_registry_stub import get_current_version
+
 from ..services.hf_space_service import HFSpaceService
 
 router = APIRouter()

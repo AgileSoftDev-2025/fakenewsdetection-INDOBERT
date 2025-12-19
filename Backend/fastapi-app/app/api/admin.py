@@ -8,11 +8,19 @@ from typing import List, Dict, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from src.services.model_registry import (
-    get_current_version,
-    _read_registry,
-    _write_registry,
-)  # type: ignore
+# Use stub in Railway production
+try:
+    from src.services.model_registry import (
+        get_current_version,
+        _read_registry,
+        _write_registry,
+    )  # type: ignore
+except ModuleNotFoundError:
+    from ..services.model_registry_stub import (
+        get_current_version,
+        _read_registry,
+        _write_registry,
+    )
 
 router = APIRouter()
 

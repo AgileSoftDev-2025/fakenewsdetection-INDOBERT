@@ -104,10 +104,13 @@ class HFSpaceService:
                 # Log feedback ke local CSV dan PostgreSQL database
                 if log_feedback:
                     try:
-                        # 1. Log ke CSV untuk retrain
-                        from src.modeling.predict import (
-                            predict_indobert,
-                        )  # type: ignore
+                        # 1. Log ke CSV untuk retrain (Railway: use stub)
+                        try:
+                            from src.modeling.predict import (
+                                predict_indobert,
+                            )  # type: ignore
+                        except ModuleNotFoundError:
+                            from .predict_stub import predict_indobert
 
                         predict_indobert(
                             [text],
@@ -180,8 +183,13 @@ class HFSpaceService:
             Dictionary hasil prediksi
         """
         try:
-            from src.modeling.predict import predict_indobert  # type: ignore
-            from src.services.model_registry import get_current_version  # type: ignore
+            # Use stub in Railway production
+            try:
+                from src.modeling.predict import predict_indobert  # type: ignore
+                from src.services.model_registry import get_current_version  # type: ignore
+            except ModuleNotFoundError:
+                from .predict_stub import predict_indobert
+                from .model_registry_stub import get_current_version
 
             logger.info("Using local model for prediction")
 

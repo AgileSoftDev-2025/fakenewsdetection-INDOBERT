@@ -5,7 +5,11 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 
-from src.feedback import update_user_label, iter_feedback  # type: ignore
+# Use stub in Railway production
+try:
+    from src.feedback import update_user_label, iter_feedback  # type: ignore
+except ModuleNotFoundError:
+    from ..services.feedback_stub import update_user_label, iter_feedback
 
 router = APIRouter()
 
