@@ -28,9 +28,16 @@ HERE = Path(__file__).resolve()
 # Check if running in Railway/Docker (only Backend/fastapi-app deployed)
 # or local (full repo structure available)
 try:
-    # Try to get repo root (works locally)
-    REPO_ROOT = HERE.parents[3]
-    MODEL_DIR = REPO_ROOT / "Model IndoBERT"
+    # Try to get repo root (works locally with full repo structure)
+    # Local: /path/to/repo/Backend/fastapi-app/app/main.py -> parents[3] = /path/to/repo
+    if len(HERE.parents) > 3:
+        REPO_ROOT = HERE.parents[3]
+        MODEL_DIR = REPO_ROOT / "Model IndoBERT"
+    else:
+        # Railway/Docker: /app/app/main.py -> not enough parents
+        # Set dummy paths, won't be used for inference (uses HF Space)
+        REPO_ROOT = HERE.parent.parent  # /app
+        MODEL_DIR = REPO_ROOT / "Model IndoBERT"  # Won't exist
     
     # Only add to path if directories exist (local environment)
     if REPO_ROOT.exists() and str(REPO_ROOT) not in sys.path:
