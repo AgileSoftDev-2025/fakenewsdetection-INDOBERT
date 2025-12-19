@@ -38,7 +38,7 @@ try:
         # Set dummy paths, won't be used for inference (uses HF Space)
         REPO_ROOT = HERE.parent.parent  # /app
         MODEL_DIR = REPO_ROOT / "Model IndoBERT"  # Won't exist
-    
+
     # Only add to path if directories exist (local environment)
     if REPO_ROOT.exists() and str(REPO_ROOT) not in sys.path:
         sys.path.insert(0, str(REPO_ROOT))
@@ -47,7 +47,9 @@ try:
 except (IndexError, ValueError):
     # Running in Railway/Docker - Model IndoBERT not needed
     # Backend only calls HF Space API for inference
-    logger.info("Running in production mode (Railway/Docker) - Model inference via HF Space API")
+    logger.info(
+        "Running in production mode (Railway/Docker) - Model inference via HF Space API"
+    )
     pass
 
 app = FastAPI(title="FakeNews Detection API", version="0.1.0")
