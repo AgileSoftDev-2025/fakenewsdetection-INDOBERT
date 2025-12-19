@@ -1,0 +1,17 @@
+# Railway Service Configuration
+# This file configures the backend service deployment
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Backend/fastapi-app/Dockerfile"
+
+[deploy]
+startCommand = "bash Backend/fastapi-app/start.sh"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+healthcheckPath = "/"
+healthcheckTimeout = 100
+
+[[services]]
+name = "backend"
+source = "Backend/fastapi-app"
