@@ -1,9 +1,5 @@
 #!/bin/bash
-# Railway start script - Auto-migrate database then start server
-
-# Run database migration on startup (creates tables if not exist)
-echo "Running database migration..."
-python migrate_to_db.py
+# Railway start script - Start server immediately (run migration manually after deploy)
 
 # Start FastAPI server
 echo "Starting FastAPI server on port ${PORT:-8000}..."
