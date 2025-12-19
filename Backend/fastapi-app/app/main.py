@@ -54,16 +54,28 @@ except (IndexError, ValueError):
 
 app = FastAPI(title="FakeNews Detection API", version="0.1.0")
 
-# ✅ CORS - Allow localhost, ngrok, dan production domain
+# ✅ CORS - Allow localhost and production domains
 ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
+    # Local development
+    "http://localhost:3000",  # Public app (nextjs-app)
+    "http://localhost:3001",  # Admin dashboard (admin-app)
     "http://127.0.0.1:3000",
-    # Tambahkan ngrok URL kalau pakai ngrok (tapi ini gak ideal)
-    # "https://your-ngrok-url.ngrok.io",
+    "http://127.0.0.1:3001",
 ]
 
-# Kalau ada env var FRONTEND_URL, tambahkan
+# Add production URLs from environment variables
+# Set these in Railway after deploying to Vercel:
+# - PUBLIC_APP_URL (nextjs-app Vercel URL)
+# - ADMIN_APP_URL (admin-app Vercel URL)
+if os.getenv("PUBLIC_APP_URL"):
+    ALLOWED_ORIGINS.append(os.getenv("PUBLIC_APP_URL"))
+    logger.info(f"Added PUBLIC_APP_URL to CORS: {os.getenv('PUBLIC_APP_URL')}")
+
+if os.getenv("ADMIN_APP_URL"):
+    ALLOWED_ORIGINS.append(os.getenv("ADMIN_APP_URL"))
+    logger.info(f"Added ADMIN_APP_URL to CORS: {os.getenv('ADMIN_APP_URL')}")
+
+# Legacy support for single FRONTEND_URL
 if os.getenv("FRONTEND_URL"):
     ALLOWED_ORIGINS.append(os.getenv("FRONTEND_URL"))
 
